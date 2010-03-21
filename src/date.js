@@ -1,6 +1,9 @@
 /*
- * Copyright 2009 Matthew Eernisse (mde@fleegix.org)
+ * Copyright 2009,2010 Matthew Eernisse (mde@fleegix.org)
  * and Open Source Applications Foundation
+ *
+ * Contributions by Jan Niehusmann, 2010
+ * Contributions by Ricky Romero, 2010
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
