@@ -660,7 +660,12 @@ timezoneJS.timezone = new function() {
       }
       res = base.replace('%s', repl);
     }
-    else {
+    else if (base.indexOf('/') > -1) {
+      // chose one of two alternative strings
+      var t = parseTimeString(rule[6]);
+      var isDst = (t[1])||(t[2])||(t[3]);
+      res = base.split("/",2)[isDst?1:0];
+    } else {
       res = base;
     }
     return res;
