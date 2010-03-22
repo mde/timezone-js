@@ -650,7 +650,7 @@ timezoneJS.timezone = new function() {
     if (base.indexOf('%s') > -1) {
       var repl;
       if (rule) {
-        repl = rule[7];
+        repl = rule[7]=='-'?'':rule[7];
       }
       // FIXME: Right now just falling back to Standard --
       // apparently ought to use the last valid rule,
