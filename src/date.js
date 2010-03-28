@@ -21,9 +21,9 @@
  * (pbergstr@mac.com)
 */
 if (typeof fleegix == 'undefined') { var fleegix = {}; }
-if (typeof fleegix.date == 'undefined') { fleegix.date = {}; }
+if (typeof timezoneJS == 'undefined') { timezoneJS = {}; }
 
-fleegix.date.Date = function () {
+timezoneJS.Date = function () {
   var args = Array.prototype.slice.apply(arguments);
   var t = null;
   var dt = null;
@@ -84,7 +84,7 @@ fleegix.date.Date = function () {
   this.setFromDateObjProxy(dt);
 };
 
-fleegix.date.Date.prototype = {
+timezoneJS.Date.prototype = {
   getDate: function () { return this.date; },
   getDay: function () { return this._day; },
   getFullYear: function () { return this.year; },
@@ -133,7 +133,7 @@ fleegix.date.Date.prototype = {
           var dt = new Date(Date.UTC(this.year, this.month, this.date,
             this.hours, this.minutes, this.seconds, this.milliseconds));
           var tz = this.timezone;
-          res = fleegix.date.timezone.getTzInfo(dt, tz);
+          res = timezoneJS.timezone.getTzInfo(dt, tz);
         }
         // Floating -- use local offset
         else {
@@ -245,7 +245,7 @@ fleegix.date.Date.prototype = {
     return this.getTime();
   },
   clone: function () {
-    return new fleegix.date.Date(this.year, this.month, this.date,
+    return new timezoneJS.Date(this.year, this.month, this.date,
       this.hours, this.minutes, this.seconds, this.milliseconds,
       this.timezone);
   },
@@ -325,7 +325,7 @@ fleegix.date.Date.prototype = {
 };
 
 
-fleegix.date.timezone = new function() {
+timezoneJS.timezone = new function() {
   var _this = this;
   var monthMap = { 'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3,'may': 4, 'jun': 5,
     'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11 };
@@ -629,7 +629,7 @@ fleegix.date.timezone = new function() {
   // mechanism, so the result needs to be returned inline
   this.loadZoneFile = function (fileName, opts) {
     if (typeof this.zoneFileBasePath == 'undefined') {
-      throw new Error('Please define a base path to your zone file directory -- fleegix.date.timezone.zoneFileBasePath.');
+      throw new Error('Please define a base path to your zone file directory -- timezoneJS.timezone.zoneFileBasePath.');
     }
     // ========================
     // Define your own transport mechanism here
