@@ -1,0 +1,80 @@
+<!DOCTYPE html
+   PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title></title>
+
+<script type="text/javascript" src="../../fleegix.js"></script>
+<script type="text/javascript" src="date.js"></script>
+
+<script type="text/javascript">
+
+var testTimezone = function () {
+  /*
+  var dtA = new fleegix.date.Date(
+      2009, 2, 8, 2, 59, 55, 0, 'America/New_York');
+  var dtB = new Date(2009, 2, 8, 2, 59, 55, 0);
+  var incr = 0;
+  var interv = setInterval(function () {
+      dtA.setSeconds(dtA.getSeconds() + 1);
+      dtB.setSeconds(dtB.getSeconds() + 1);
+      console.log('fleegix: ' + dtA.toString() +
+          ' / TZ Offset: ' + dtA.getTimezoneOffset() + '\n');
+      console.log('JS: ' + dtB.toString()+
+          ' / TZ Offset: ' + dtB.getTimezoneOffset() + '\n');
+      incr++;
+      if (incr > 20) { clearInterval(interv); }
+  }, 999);
+  */
+  /*
+  var dt = new fleegix.date.Date(
+      2009, 2, 8, 1, 59, 55, 0, 'America/New_York');
+  var incr = 0;
+  var interv = setInterval(function () {
+    var UTC = (dt.getTime() + 1000); // Increment current UTC epoch by 1000 ms
+    dt.setTime(UTC); // Update date object
+    console.log(dt.toString() +
+        ' / TZ Offset: ' + dt.getTimezoneOffset());
+    incr++;
+    if (incr > 20) { clearInterval(interv); }
+  }, 999);
+  */
+  var dtA;
+  var dtB;
+  var incr = 0;
+  var sec = 55;
+  var interv = setInterval(function () {
+    dtA = new fleegix.date.Date(
+        2009, 2, 8, 1, 59, sec, 0, 'America/New_York');
+    dtB = new Date(2009, 2, 8, 1, 59, sec, 0);
+    sec++;
+    console.log('fleegix: ' + dtA.toString() +
+        ' / TZ Offset: ' + dtA.getTimezoneOffset() + '\n');
+    console.log('JS: ' + dtB.toString()+
+        ' / TZ Offset: ' + dtB.getTimezoneOffset() + '\n');
+    incr++;
+    if (incr > 20) { clearInterval(interv); }
+  }, 999);
+
+};
+fleegix.date.timezone.zoneFileBasePath = '/tz';
+fleegix.date.timezone.init({ callback: testTimezone });
+
+</script>
+
+
+<style type="text/css">
+
+* {
+  font-family: "Lucida Grande", "Verdana", sans-serif;
+}
+
+</style>
+
+</head>
+  <body>
+  </body>
+</html>
