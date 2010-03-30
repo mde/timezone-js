@@ -13,9 +13,12 @@
 
 <script type="text/javascript">
 
-timezoneJS.timezone.zoneFileBasePath = '/tz';
-timezoneJS.timezone.defaultZoneFile = ['asia', 'backward', 'northamerica', 'southamerica', 'europe'];
-timezoneJS.timezone.init();
+var setUpPage = function () {
+	timezoneJS.timezone.zoneFileBasePath = '/tz';
+	timezoneJS.timezone.defaultZoneFile = ['asia', 'backward', 'northamerica', 'southamerica', 'europe'];
+	timezoneJS.timezone.init({async: false});
+	setUpPageStatus = 'complete';
+}
 
 var test_americaChicagoDST = function () {
     var testDstLeap = function (arr) {
