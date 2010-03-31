@@ -452,107 +452,138 @@ timezoneJS.timezone = new function() {
     off = adj * (((off[1] * 60 + off[2]) *60 + off[3]) * 1000);
     return -off/60/1000;
   }
-  function getRule(dt, str) {
-    var currRule = null;
-    var year = dt.getUTCFullYear();
-    var rules = _this.rules[str];
-    var ruleHits = [];
-    var getMonthNumber = function (r) {
-      return monthMap[r[3].substr(0, 3).toLowerCase()];
-    };
-    var checkForHits = function (incr, rule, d, dt) {
-      d.setUTCDate(d.getUTCDate() + incr);
-      if (dt >= d) {
-        ruleHits.push({ 'rule': rule, 'date': d });
-      }
-      // FIXME: Check against previous year if rule covers that period
-      // These should always be fall rules from a previous year,
-      // so the month number should be > 8 -- this is an ugly hack,
-      // but seems to work consistently and I can't think of a better
-      // way to cover all the goddamned edge cases for this -- see
-      // Asia/Jerusalem for some particularly gnarly examples
-      else if ((rule[0] < year) && (getMonthNumber(r) > 8)) {
-        d.setUTCFullYear(d.getUTCFullYear()-1);
-        if (dt >= d) {
-          ruleHits.push({ 'rule': rule, 'date': d });
-        }
-      }
-    };
+  function getRule( date, ruleset )
+  {
+    // Step 1:  Find applicable rules for this year.
+    // Step 2:  Sort the rules by effective date.
+    // Step 3:  Check requested date to see if a rule has yet taken effect this year.  If not,
+    // Step 4:  Get the rules for the previous year.  If there isn't an applicable rule for last year, then
+    //      there probably is no current time offset since they seem to explicitly turn off the offset
+    //      when someone stops observing DST.
+    //      FIXME if this is not the case and we'll walk all the way back (ugh).
+    // Step 5:  Sort the rules by effective date.
+    // Step 6:  Apply the most recent rule before the current time.
 
-    // String conversion may be happening somewhere?
-    // so check for string of 'undefined'
-    if (!rules || rules == 'undefined') { return null; }
-    for (var i = 0; i < rules.length; i++) {
-      r = rules[i];
-      // Only look at applicable rules -- throw out:
-      // 1. Rules with a 'to' year earlier than the year
-      // 2. Rules which are confined to the 'from' year, and
-      //  are earlier than the year
-      // 3. Rules where the 'from' starts after
-      if ((r[1] < year) ||
-        (r[0] < year && r[1] == 'only') ||
-        (r[0] > year)) {
-        continue;
+    var convertRuleToExactDateAndTime = function( year, rule )
+    {
+      // Assume that the rule applies to the year of the given date.
+      var months = {
+        "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5,
+        "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
       };
-      var mon = getMonthNumber(r);
-      var day = r[4];
 
-      // Not a specific date number -- have to parse to get date
-      if (isNaN(day)) {
-        if (day.substr(0, 4) == 'last') {
-          var day = dayMap[day.substr(4,3).toLowerCase()];
-          var t = parseTimeString(r[5]);
-          // Last day of the month at the desired time of day
-          var d = new Date(Date.UTC(dt.getUTCFullYear(), mon+1, 1, t[1]-24, t[2], t[3]));
-          var dtDay = d.getUTCDay();
-          // Set it to the final day of the correct weekday that month
-          var incr = (day > dtDay) ? (day - dtDay - 7) : (day - dtDay);
-          checkForHits(incr, r, d, dt);
+      var days = {
+        "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6
+      }
+
+      var hms = parseTimeString( rule[ 5 ] );
+      var effectiveDate;
+
+      if ( !isNaN( rule[ 4 ] ) ) // If we have a specific date, use that!
+      {
+        effectiveDate = new Date( Date.UTC( year, months[ rule[ 3 ] ], rule[ 4 ], hms[ 1 ], hms[ 2 ], hms[ 3 ], 0 ) );
+      }
+      else // Let's hunt for the date.
+      {
+        var targetDay,
+          operator;
+
+        if ( rule[ 4 ].substr( 0, 4 ) === "last" ) // Example: lastThu
+        {
+          // Start at the last day of the month and work backward.
+          effectiveDate = new Date( Date.UTC( year, months[ rule[ 3 ] ] + 1, 1, hms[ 1 ] - 24, hms[ 2 ], hms[ 3 ], 0 ) );
+          targetDay = days[ rule[ 4 ].substr( 4, 3 ).toLowerCase( ) ];
+          operator = "<=";
         }
-        else {
-          day = dayMap[day.substr(0, 3).toLowerCase()];
-          if (day != 'undefined') {
-            if(r[4].substr(3, 2) == '>=') {
-              var t = parseTimeString(r[5]);
-              // The stated date of the month
-              var d = new Date(Date.UTC(dt.getUTCFullYear(), mon,
-                parseInt(r[4].substr(5), 10), t[1], t[2], t[3]));
-              var dtDay = d.getUTCDay();
-              // Set to the first correct weekday after the stated date
-              var incr = (day < dtDay) ? (day - dtDay + 7) : (day - dtDay);
-              checkForHits(incr, r, d, dt);
-            }
-            else if (day.substr(3, 2) == '<=') {
-              var t = parseTimeString(r[5]);
-              // The stated date of the month
-              var d = new Date(Date.UTC(dt.getUTCFullYear(), mon,
-                parseInt(r[4].substr(5), 10), t[1], t[2], t[3]));
-              var dtDay = d.getUTCDay();
-              // Set to first correct weekday before the stated date
-              var incr = (day > dtDay) ? (day - dtDay - 7) : (day - dtDay);
-              checkForHits(incr, r, d, dt);
-            }
+        else // Example: Sun>=15
+        {
+          // Start at the specified date.
+          effectiveDate = new Date( Date.UTC( year, months[ rule[ 3 ] ], rule[ 4 ].substr( 5 ), hms[ 1 ], hms[ 2 ], hms[ 3 ], 0 ) );
+          targetDay = days[ rule[ 4 ].substr( 0, 3 ).toLowerCase( ) ];
+          operator = rule[ 4 ].substr( 3, 2 );
+        }
+
+        var ourDay = effectiveDate.getUTCDay( );
+
+        if ( operator === ">=" ) // Go forwards.
+        {
+          effectiveDate.setUTCDate( effectiveDate.getUTCDate( ) + ( targetDay - ourDay + ( ( targetDay < ourDay ) ? 7 : 0 ) ) );
+        }
+        else // Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
+        {
+          effectiveDate.setUTCDate( effectiveDate.getUTCDate( ) + ( targetDay - ourDay - ( ( targetDay > ourDay ) ? 7 : 0 ) ) );
+        }
+      }
+
+      return effectiveDate;
+    }
+
+    var findApplicableRules = function( year, ruleset )
+    {
+      var applicableRules = [];
+
+      for ( var i in ruleset )
+      {
+        if ( Number( ruleset[ i ][ 0 ] ) <= year ) // Exclude future rules.
+        {
+          if (
+            Number( ruleset[ i ][ 1 ] ) >= year                                            // Date is in a set range.  Shouldn't see them equal, but just in case.
+            || ( Number( ruleset[ i ][ 0 ] ) === year && ruleset[ i ][ 1 ] === "only" )    // Date is in an "only" year.
+            || ruleset[ i ][ 1 ] === "max"                                                 // We're in a range from the start year to infinity.
+          )
+          {
+            // It's completely okay to have any number of matches here.
+            // Normally we should only see two, but that doesn't preclude other numbers of matches.
+            // These matches are applicable to this year.
+            applicableRules.push( ruleset[ i ] );
           }
         }
       }
-      // Numeric date
-      else {
-        var t = parseTimeString(r[5]);
-        var d = new Date(Date.UTC(dt.getUTCFullYear(), mon, day, t[1], t[2], t[3]));
-        if (dt < d) {
-          continue;
-        }
-        else {
-          ruleHits.push({ 'rule': r, 'date': d });
-        }
+
+      return applicableRules;
+    }
+
+    var compareDates = function( a, b )
+    {
+      if ( a.constructor !== Date )
+      {
+        a = convertRuleToExactDateAndTime( year, a );
       }
+      if ( b.constructor !== Date )
+      {
+        b = convertRuleToExactDateAndTime( year, b );
+      }
+
+      a = Number( a );
+      b = Number( b );
+
+      return a - b;
     }
-    if (ruleHits.length) {
-      f = function(a, b) { return (a.date.getTime() >= b.date.getTime()) ?  1 : -1; }
-      ruleHits.sort(f);
-      currRule = ruleHits.pop().rule;
+
+    var year = date.getFullYear( );
+    var applicableRules = new Array( );
+
+    applicableRules[ year ] = findApplicableRules( year, _this.rules[ ruleset ] );
+    applicableRules[ year ].push( date );
+    applicableRules[ year ].sort( compareDates );
+
+    if ( applicableRules[ year ].indexOf( date ) === 0 ) // If there are no past DST rules...
+    {
+      year--;
+      applicableRules[ year ] = findApplicableRules( year, _this.rules[ ruleset ] );
+      applicableRules[ year ].sort( compareDates );
+      year++;
     }
-    return currRule;
+
+    var pinpoint = applicableRules[ year ].indexOf( date );
+    if ( pinpoint === 0 )
+    {
+      return applicableRules[ year - 1 ].pop( );
+    }
+    else
+    {
+      return applicableRules[ year ][ pinpoint - 1 ];
+    }
   }
   function getAdjustedOffset(off, rule) {
     var save = rule[6];
