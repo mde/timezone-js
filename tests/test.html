@@ -20,6 +20,36 @@ var setUpPage = function () {
 	setUpPageStatus = 'complete';
 }
 
+
+parseISO = function (timestring) {
+    var match = timestring.match('^(?:([+-]?[0-9]{4,})(?:-([0-9]{2})(?:-([0-9]{2}))?)?)?(?:T(?:([0-9]{2})(?::([0-9]{2})(?::([0-9]{2})(?:\\.([0-9]{3}))?)?)?)?(Z|[-+][0-9]{2}:[0-9]{2})?)?$'); 
+    if(match) {
+	var parts = {
+	    year: match[1] || 0,
+	    month:  match[2] || 1,
+	    day:  match[3] || 1,
+	    hour:  match[4] || 0,
+	    minute:  match[5] || 0,
+	    second:  match[6] || 0,
+	    milli:  match[7] || 0,
+	    tz:  match[8] || "Z"
+	}
+	var utcdate = Date.UTC(parts.year,parts.month-1,parts.day,parts.hour,parts.minute,parts.second,parts.milli);
+	if(parts.tz !== "Z") {
+	    match = parts.tz.match('([-+][0-9]{2})(?::([0-9]{2}))?');
+	    if(!match) {
+		return NaN;
+	    }
+	    var offset = match[1]*60*60*1000+(match[2] || 0)*60*1000;
+	    utcdate -= offset;
+	}
+	return new Date(utcdate);
+    } else {
+	return null;
+    }
+}
+
+
 var test_americaChicagoDST = function () {
     var testDstLeap = function (arr) {
       var expectedArr = [360, 300, 300, 360];
@@ -27,21 +57,21 @@ var test_americaChicagoDST = function () {
       var actual;
       var expected;
       for (var i = 0; i < arr.length; i++) {
-        dt = new timezoneJS.Date(arr[i], 'America/Chicago');
-        actual = dt.getTimezoneOffset();
+        dt = timezoneJS.timezone.getTzInfo(parseISO(arr[i]), 'America/Chicago');
+        actual = dt.tzOffset;
         expected = expectedArr[i];
-        assertEquals(expected, actual);
+        assertEquals(arr[i],expected, actual);
       }
     };
-    testDstLeap(['04/04/2004', '04/05/2004', '10/31/2004', '11/01/2004']);
-    testDstLeap(['04/03/2005', '04/04/2005', '10/30/2005', '10/31/2005']);
-    testDstLeap(['04/02/2006', '04/03/2006', '10/29/2006', '10/30/2006']);
+    testDstLeap(['2004-04-04', '2004-04-05', '2004-10-31', '2004-11-01']);
+    testDstLeap(['2005-04-03', '2005-04-04', '2005-10-30', '2005-10-31']);
+    testDstLeap(['2006-04-02', '2006-04-03', '2006-10-29', '2006-10-30']);
     // 2007 -- new DST rules start here
-    testDstLeap(['03/11/2007', '03/12/2007', '11/04/2007', '11/05/2007']);
-    testDstLeap(['03/09/2008', '03/10/2008', '11/02/2008', '11/03/2008']);
-    testDstLeap(['03/08/2009', '03/09/2009', '11/01/2009', '11/02/2009']);
-    testDstLeap(['03/14/2010', '03/15/2010', '11/07/2010', '11/08/2010']);
-    testDstLeap(['03/13/2011', '03/14/2011', '11/06/2011', '11/07/2011']);
+    testDstLeap(['2007-03-11', '2007-03-12', '2007-11-04', '2007-11-05']);
+    testDstLeap(['2008-03-09', '2008-03-10', '2008-11-02', '2008-11-03']);
+    testDstLeap(['2009-03-08', '2009-03-09', '2009-11-01', '2009-11-02']);
+    testDstLeap(['2010-03-14', '2010-03-15', '2010-11-07', '2010-11-08']);
+    testDstLeap(['2011-03-13', '2011-03-14', '2011-11-06', '2011-11-07']);
 };
 
 var test_SaoPaulo = function () {
@@ -50,14 +80,14 @@ var test_SaoPaulo = function () {
   // Daylight: GMT-2 from Nov 2 - Feb 16
   var dt;
   // 2008
-  //dt = new timezoneJS.Date('02/16/2008', 'America/Sao_Paulo');
-  //assertEquals(120, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('02/17/2008', 'America/Sao_Paulo');
-  assertEquals(180, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('10/11/2008', 'America/Sao_Paulo');
-  assertEquals(180, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('10/19/2008', 'America/Sao_Paulo');
-  assertEquals(120, dt.getTimezoneOffset());
+  //dt = timezoneJS.timezone.getTzInfo(parseISO('2008-02-16-02:00'), 'America/Sao_Paulo');
+  //assertEquals(120, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2008-02-17'), 'America/Sao_Paulo');
+  assertEquals(180, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2008-10-11'), 'America/Sao_Paulo');
+  assertEquals(180, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2008-10-19'), 'America/Sao_Paulo');
+  assertEquals(120, dt.tzOffset);
 };
 
 var test_Jerusalem = function () {
@@ -65,23 +95,23 @@ var test_Jerusalem = function () {
   // Changes every year!
   var dt;
   // 2008
-  dt = new timezoneJS.Date('03/28/2008 01:59:59', 'Asia/Jerusalem');
-  assertEquals(-120, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('03/28/2008 03:00:01', 'Asia/Jerusalem');
-  assertEquals(-180, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('10/05/2008 00:59:59', 'Asia/Jerusalem');
-  assertEquals(-180, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('10/05/2008 03:00:01', 'Asia/Jerusalem');
-  assertEquals(-120, dt.getTimezoneOffset());
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2008-03-28T01:59:59'), 'Asia/Jerusalem');
+  assertEquals(-120, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2008-03-28T03:00:01'), 'Asia/Jerusalem');
+  assertEquals(-180, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2008-10-05T00:59:59'), 'Asia/Jerusalem');
+  assertEquals(-180, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2008-10-05T03:00:01'), 'Asia/Jerusalem');
+  assertEquals(-120, dt.tzOffset);
   // 2009
-  dt = new timezoneJS.Date('03/27/2009 01:59:59', 'Asia/Jerusalem');
-  assertEquals(-120, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('03/27/2009 03:00:01', 'Asia/Jerusalem');
-  assertEquals(-180, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('09/27/2009 00:59:59', 'Asia/Jerusalem');
-  assertEquals(-180, dt.getTimezoneOffset());
-  dt = new timezoneJS.Date('09/27/2009 03:00:01', 'Asia/Jerusalem');
-  assertEquals(-120, dt.getTimezoneOffset());
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2009-03-27T01:59:59'), 'Asia/Jerusalem');
+  assertEquals(-120, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2009-03-27T03:00:01'), 'Asia/Jerusalem');
+  assertEquals(-180, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2009-09-27T00:59:59'), 'Asia/Jerusalem');
+  assertEquals(-180, dt.tzOffset);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2009-09-27T03:00:01'), 'Asia/Jerusalem');
+  assertEquals(-120, dt.tzOffset);
 };
 
 </script>
