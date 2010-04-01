@@ -452,8 +452,37 @@ timezoneJS.timezone = new function() {
     off = adj * (((off[1] * 60 + off[2]) *60 + off[3]) * 1000);
     return -off/60/1000;
   }
-  function getRule( date, ruleset )
-  {
+
+  // if isUTC is true, date is given in UTC, otherwise it's given
+  // in local time (ie. date.getUTC*() returns local time components)
+  function getRule( date, zone, isUTC ) {
+    var ruleset = zone[1];
+    var basicOffset = getBasicOffset( zone );
+
+    // Convert a date to UTC. Depending on the 'type' parameter, the date
+    // parameter may be:
+    // 'u', 'g', 'z': already UTC (no adjustment)
+    // 's': standard time (adjust for time zone offset but not for DST)
+    // 'w': wall clock time (adjust for both time zone and DST offset)
+    //
+    // DST adjustment is done using the rule given as third argument
+    var convertDateToUTC = function( date, type, rule ) {
+      var offset = 0;
+
+      if(type == 'u' || type == 'g' || type == 'z') { // UTC
+          offset = 0;
+      } else if(type == 's') { // Standard Time
+          offset = basicOffset;
+      } else if(type == 'w' || !type ) { // Wall Clock Time
+          offset = getAdjustedOffset(basicOffset,rule);
+      } else {
+          throw("unknown type "+type);
+      }
+      offset *= 60*1000; // to millis
+
+      return new Date( date.getTime() + offset );
+    }
+
     // Step 1:  Find applicable rules for this year.
     // Step 2:  Sort the rules by effective date.
     // Step 3:  Check requested date to see if a rule has yet taken effect this year.  If not,
@@ -464,8 +493,11 @@ timezoneJS.timezone = new function() {
     // Step 5:  Sort the rules by effective date.
     // Step 6:  Apply the most recent rule before the current time.
 
-    var convertRuleToExactDateAndTime = function( year, rule )
+    var convertRuleToExactDateAndTime = function( yearAndRule, prevRule )
     {
+      var year = yearAndRule[0];
+      var rule = yearAndRule[1];
+
       // Assume that the rule applies to the year of the given date.
       var months = {
         "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5,
@@ -515,6 +547,12 @@ timezoneJS.timezone = new function() {
         }
       }
 
+      // if previous rule is given, correct for the fact that the starting time of the current
+      // rule may be specified in local time
+      if(prevRule) {
+        effectiveDate = convertDateToUTC(effectiveDate, hms[4], prevRule);
+      }
+
       return effectiveDate;
     }
 
@@ -535,7 +573,7 @@ timezoneJS.timezone = new function() {
             // It's completely okay to have any number of matches here.
             // Normally we should only see two, but that doesn't preclude other numbers of matches.
             // These matches are applicable to this year.
-            applicableRules.push( ruleset[ i ] );
+            applicableRules.push( [year, ruleset[ i ]] );
           }
         }
       }
@@ -543,15 +581,17 @@ timezoneJS.timezone = new function() {
       return applicableRules;
     }
 
-    var compareDates = function( a, b )
+    var compareDates = function( a, b, prev )
     {
-      if ( a.constructor !== Date )
-      {
-        a = convertRuleToExactDateAndTime( year, a );
+      if ( a.constructor !== Date ) {
+        a = convertRuleToExactDateAndTime( a, prev );
+      } else if(prev) {
+        a = convertDateToUTC(a, isUTC?'u':'w', prev);
       }
-      if ( b.constructor !== Date )
-      {
-        b = convertRuleToExactDateAndTime( year, b );
+      if ( b.constructor !== Date ) {
+        b = convertRuleToExactDateAndTime( b, prev );
+      } else if(prev) {
+        b = convertDateToUTC(b, isUTC?'u':'w', prev);
       }
 
       a = Number( a );
@@ -561,28 +601,34 @@ timezoneJS.timezone = new function() {
     }
 
     var year = date.getFullYear( );
-    var applicableRules = new Array( );
+    var applicableRules;
 
-    applicableRules[ year ] = findApplicableRules( year, _this.rules[ ruleset ] );
-    applicableRules[ year ].push( date );
-    applicableRules[ year ].sort( compareDates );
+    applicableRules = findApplicableRules( year, _this.rules[ ruleset ] );
+    applicableRules.push( date );
+    // While sorting, the time zone in which the rule starting time is specified
+    // is ignored. This is ok as long as the timespan between two DST changes is
+    // larger than the DST offset, which is probably always true.
+    // As the given date may indeed be close to a DST change, it may get sorted
+    // to a wrong position (off by one), which is corrected below.
+    applicableRules.sort( compareDates );
 
-    if ( applicableRules[ year ].indexOf( date ) === 0 ) // If there are no past DST rules...
-    {
-      year--;
-      applicableRules[ year ] = findApplicableRules( year, _this.rules[ ruleset ] );
-      applicableRules[ year ].sort( compareDates );
-      year++;
+    if ( applicableRules.indexOf( date ) < 2 ) { // If there are not enough past DST rules...
+      applicableRules = applicableRules.concat(findApplicableRules( year-1, _this.rules[ ruleset ] ));
+      applicableRules.sort( compareDates );
     }
 
-    var pinpoint = applicableRules[ year ].indexOf( date );
-    if ( pinpoint === 0 )
-    {
-      return applicableRules[ year - 1 ].pop( );
-    }
-    else
-    {
-      return applicableRules[ year ][ pinpoint - 1 ];
+    var pinpoint = applicableRules.indexOf( date );
+    if ( pinpoint > 1 && compareDates( date, applicableRules[pinpoint-1], applicableRules[pinpoint-2][1] ) < 0 ) {
+      // the previous rule does not really apply, take the one before that
+      return applicableRules[ pinpoint - 2 ][1];
+    } else if ( pinpoint > 0 && pinpoint < applicableRules.length - 1 && compareDates( date, applicableRules[pinpoint+1], applicableRules[pinpoint-1][1] ) > 0) {
+      // the next rule does already apply, take that one
+      return applicableRules[ pinpoint + 1 ][1];
+    } else if ( pinpoint === 0 ) {
+      // no applicable rule found in this and in previous year
+      return null;
+    } else {
+      return applicableRules[ pinpoint - 1 ][1];
     }
   }
   function getAdjustedOffset(off, rule) {
@@ -764,7 +810,7 @@ timezoneJS.timezone = new function() {
     var zone = getZone(dt, tz);
     var off = getBasicOffset(zone);
     // See if the offset needs adjustment
-    var rule = getRule(dt, zone[1]);
+    var rule = getRule(dt, zone);
     if (rule) {
       off = getAdjustedOffset(off, rule);
     }
@@ -772,6 +818,5 @@ timezoneJS.timezone = new function() {
     return { tzOffset: off, tzAbbr: abbr };
   }
 }
-
 
 
