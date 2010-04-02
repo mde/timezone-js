@@ -120,6 +120,18 @@ var test_Jerusalem = function () {
   assertEquals(-120, dt.tzOffset);
 };
 
+var test_abbrevZoneNames = function() {
+  var dt;
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-01-01'), 'Europe/Berlin'); // winter time (CET) for sure
+  assertEquals('Test abbrev. for central european standard time','CET', dt.tzAbbr);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-07-01'), 'Europe/Berlin'); // summer time (CEST) for sure
+  assertEquals('Test abbrev. for central european summer time','CEST', dt.tzAbbr);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-01-01'), 'Europe/London'); // winter time (GMT) for sure
+  assertEquals('Test abbrev. for british standard time','GMT', dt.tzAbbr);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-07-01'), 'Europe/London'); // summer time (BST) for sure
+  assertEquals('Test abbrev. for british summer time','BST', dt.tzAbbr);
+}
+
 </script>
 
 
