@@ -800,7 +800,7 @@ timezoneJS.timezone = new function() {
     }
     return true;
   };
-  this.getTzInfo = function(dt, tz) {
+  this.getTzInfo = function(dt, tz, isUTC) {
     // Lazy-load any zones not yet loaded
     if (this.loadingScheme == this.loadingSchemes.LAZY_LOAD) {
       // Get the correct region for the zone
@@ -818,7 +818,7 @@ timezoneJS.timezone = new function() {
     var zone = getZone(dt, tz);
     var off = getBasicOffset(zone);
     // See if the offset needs adjustment
-    var rule = getRule(dt, zone);
+    var rule = getRule(dt, zone, isUTC);
     if (rule) {
       off = getAdjustedOffset(off, rule);
     }

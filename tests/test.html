@@ -132,6 +132,29 @@ var test_abbrevZoneNames = function() {
   assertEquals('Test abbrev. for british summer time','BST', dt.tzAbbr);
 }
 
+var test_timezoneFromUTC = function() {
+  var dt;
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-28T01:59:59'), 'Europe/Berlin'); // CET, from local time
+  assertEquals('CET, from local time','CET', dt.tzAbbr);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-28T03:00:00'), 'Europe/Berlin'); // CEST, from local time
+  assertEquals('CEST, from local time','CEST', dt.tzAbbr);
+
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-28T00:59:59'), 'Europe/Berlin', true); // CET, from UTC
+  assertEquals('CET, from UTC','CET', dt.tzAbbr);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-28T01:00:00'), 'Europe/Berlin', true); // CEST, from UTC
+  assertEquals('CEST, from UTC','CEST', dt.tzAbbr);
+
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-14T01:59:59'), 'America/Chicago'); // CST, from local time
+  assertEquals('CST, from local time','CST', dt.tzAbbr);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-14T03:00:00'), 'America/Chicago'); // CDT, from local time
+  assertEquals('CDT, from local time','CDT', dt.tzAbbr);
+
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-14T07:59:59'), 'America/Chicago', true); // CST, from UTC
+  assertEquals('CST, from UTC','CST', dt.tzAbbr);
+  dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-14T08:00:00'), 'America/Chicago', true); // CDT, from UTC
+  assertEquals('CDT, from UTC','CDT', dt.tzAbbr);
+}
+
 </script>
 
 
