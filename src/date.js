@@ -568,7 +568,7 @@ timezoneJS.timezone = new function() {
         if ( Number( ruleset[ i ][ 0 ] ) <= year ) // Exclude future rules.
         {
           if (
-            Number( ruleset[ i ][ 1 ] ) >= year                                            // Date is in a set range.  Shouldn't see them equal, but just in case.
+            Number( ruleset[ i ][ 1 ] ) >= year                                            // Date is in a set range.
             || ( Number( ruleset[ i ][ 0 ] ) === year && ruleset[ i ][ 1 ] === "only" )    // Date is in an "only" year.
             || ruleset[ i ][ 1 ] === "max"                                                 // We're in a range from the start year to infinity.
           )
@@ -603,7 +603,7 @@ timezoneJS.timezone = new function() {
       return a - b;
     }
 
-    var year = date.getFullYear( );
+    var year = date.getUTCFullYear( );
     var applicableRules;
 
     applicableRules = findApplicableRules( year, _this.rules[ ruleset ] );
