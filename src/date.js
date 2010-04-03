@@ -2,9 +2,6 @@
  * Copyright 2009,2010 Matthew Eernisse (mde@fleegix.org)
  * and Open Source Applications Foundation
  *
- * Contributions by Jan Niehusmann, 2010
- * Contributions by Ricky Romero, 2010
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,9 +16,13 @@
  *
  * Credits: Ideas included from incomplete JS implementation of Olson
  * parser, "XMLDAte" by Philippe Goetz (philippe.goetz@wanadoo.fr)
- * Additional contributions: Preston Hunt (prestonhunt@gmail.com),
- * Dov. B Katz (dov.katz@morganstanley.com), Peter Bergström
- * (pbergstr@mac.com)
+ *
+ * Contributions:
+ * Jan Niehusmann, 2010
+ * Ricky Romero, 2010
+ * Preston Hunt (prestonhunt@gmail.com),
+ * Dov. B Katz (dov.katz@morganstanley.com),
+ * Peter Bergström (pbergstr@mac.com)
 */
 if (typeof fleegix == 'undefined') { var fleegix = {}; }
 if (typeof timezoneJS == 'undefined') { timezoneJS = {}; }
