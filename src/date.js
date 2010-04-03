@@ -1,5 +1,5 @@
 /*
- * Copyright 2009,2010 Matthew Eernisse (mde@fleegix.org)
+ * Copyright 2010 Matthew Eernisse (mde@fleegix.org)
  * and Open Source Applications Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,8 @@
  * parser, "XMLDAte" by Philippe Goetz (philippe.goetz@wanadoo.fr)
  *
  * Contributions:
- * Jan Niehusmann, 2010
- * Ricky Romero, 2010
+ * Jan Niehusmann
+ * Ricky Romero
  * Preston Hunt (prestonhunt@gmail.com),
  * Dov. B Katz (dov.katz@morganstanley.com),
  * Peter Bergström (pbergstr@mac.com)
