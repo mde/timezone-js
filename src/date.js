@@ -291,6 +291,8 @@ timezoneJS.Date.prototype = {
   setTimezone: function (tz) {
     if (tz == 'Etc/UTC' || tz == 'Etc/GMT') {
       this.utc = true;
+    } else {
+      this.utc = false;
     }
     this.timezone = tz;
     this._useCache = false;
