@@ -120,5 +120,15 @@ describe('Timezone', function () {
     dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-14T08:00:00'), 'America/Chicago', true); // CDT, from UTC
     expect('CDT').toEqual(dt.tzAbbr);
   });
+  
+  it('should convert from UTC to another timezone', function () {
+    // Regression test for a bug
+    
+    var dt = new timezoneJS.Date(2011, 6, 10, 0, 0, 0, 'Etc/UTC')
+    expect(dt.getTimezoneOffset()).toBe(0);
+    dt.setTimezone('America/Chicago')
+    expect(dt.getTimezoneOffset()).toNotBe(0);
+    
+  });
 
 });
