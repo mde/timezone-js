@@ -132,13 +132,13 @@ describe('Timezone', function () {
   
   it('should correctly offset between two timezones', function() { // This won't pass unless the offsets are reversed ...
      
-    var dt = new timezoneJS.Date(2011, 6, 10, 0, 0, 0, 'Etc/UTC')
-    var dt2= new timezoneJS.Date(2011, 6, 10, 0, 0, 0, 'Etc/UTC')
+    var dt = new timezoneJS.Date(2011, 6, 10, 0, 0, 10, 'Etc/UTC')
+    var dt2= new timezoneJS.Date(2011, 6, 10, 0, 10, 10, 'Etc/UTC')
     
     dt.convertToTimezone('America/New_York')
     dt2.convertToTimezone('America/Los_Angeles')
     
-    expect((dt - dt2) === 0).toBe(true) // true because it is the same date
+    expect((dt - dt2) === -10*60*1000).toBe(true) // still only 10 minutes off
     expect((dt.getTimezoneOffset() - dt2.getTimezoneOffset()) === -180).toBe(true) // three hour difference
     
   });
