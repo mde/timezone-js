@@ -327,6 +327,16 @@ timezoneJS.Date.prototype = {
     var d = new Date(dt.getYear(), dt.getMonth(), dt.getDate(),
       dt.getHours(), dt.getMinutes(), dt.getSeconds());
     return d.getTimezoneOffset();
+  },
+  convertToTimezone: function(tz) {
+    var dt = new Date();
+    res = timezoneJS.timezone.getTzInfo(dt, tz);
+    
+    convert_offset = this.getTimezoneOffset() - res.tzOffset // offset in minutes
+    this.setMinutes(convert_offset)
+    // converted_date = new timezoneJS.Date(this - convert_offset*60*1000)
+    // this.setFromDateObjProxy(converted_date, true)
+    this.setTimezone(tz)
   }
 };
 
