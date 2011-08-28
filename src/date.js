@@ -331,10 +331,10 @@ timezoneJS.Date.prototype = {
   convertToTimezone: function(tz) {
     var dt = new Date();
     res = timezoneJS.timezone.getTzInfo(dt, tz);
-    
-    convert_offset = this.getTimezoneOffset() - res.tzOffset // offset in minutes
-    converted_date = new timezoneJS.Date(this + convert_offset*60*1000)
-    this.setFromDateObjProxy(converted_date, true)
+
+    convert_offset = dt.getTimezoneOffset() - res.tzOffset // offset in minutes
+    converted_date = new timezoneJS.Date(this.getTime() + convert_offset*60*1000)
+    this.setFromDateObjProxy(converted_date, false)
     this.setTimezone(tz)
   }
 };
