@@ -233,7 +233,7 @@ timezoneJS.Date.prototype = {
   toString: function () {
     // Get a quick looky at what's in there
     var str = this.getFullYear() + '-' + (this.getMonth()+1) + '-' + this.getDate();
-    var hou = this.getHours() || 12;
+    var hou = this.getHours();
     hou = String(hou);
     var min = String(this.getMinutes());
     if (min.length == 1) { min = '0' + min; }
