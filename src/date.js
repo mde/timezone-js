@@ -564,7 +564,7 @@ timezoneJS.timezone = new function() {
     {
       var applicableRules = [];
 
-      for ( var i in ruleset )
+      for (var i = 0; i < ruleset.length; i++)
       {
         if ( Number( ruleset[ i ][ 0 ] ) <= year ) // Exclude future rules.
         {
@@ -827,5 +827,3 @@ timezoneJS.timezone = new function() {
     return { tzOffset: off, tzAbbr: abbr };
   }
 }
-
-
