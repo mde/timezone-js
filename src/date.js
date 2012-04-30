@@ -24,7 +24,7 @@
  * Dov. B Katz (dov.katz@morganstanley.com),
  * Peter Bergström (pbergstr@mac.com)
 */
-if (typeof fleegix == 'undefined') { var fleegix = {}; }
+
 if (typeof timezoneJS == 'undefined') { timezoneJS = {}; }
 
 timezoneJS.Date = function () {
@@ -291,6 +291,8 @@ timezoneJS.Date.prototype = {
   setTimezone: function (tz) {
     if (tz == 'Etc/UTC' || tz == 'Etc/GMT') {
       this.utc = true;
+    } else {
+      this.utc = false;
     }
     this.timezone = tz;
     this._useCache = false;
@@ -325,50 +327,27 @@ timezoneJS.Date.prototype = {
     var d = new Date(dt.getYear(), dt.getMonth(), dt.getDate(),
       dt.getHours(), dt.getMinutes(), dt.getSeconds());
     return d.getTimezoneOffset();
+  },
+  convertToTimezone: function(tz) {
+    var dt = new Date();
+    res = timezoneJS.timezone.getTzInfo(dt, tz);
+    
+    convert_offset = this.getTimezoneOffset() - res.tzOffset // offset in minutes
+    converted_date = new timezoneJS.Date(this + convert_offset*60*1000)
+    this.setFromDateObjProxy(converted_date, true)
+    this.setTimezone(tz)
   }
 };
 
-
 timezoneJS.timezone = new function() {
   var _this = this;
-  var monthMap = { 'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3,'may': 4, 'jun': 5,
-    'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11 };
+  var monthMap = { 'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3,'may': 4, 'jun': 5, 'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11 };
   var dayMap = {'sun': 0,'mon' :1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
   var regionMap = {'EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'};
   var regionExceptions = {'Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica'};
 
   function invalidTZError(t) {
     throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.');
-  }
-  function builtInLoadZoneFile(fileName, opts) {
-    if (typeof fleegix.xhr == 'undefined') {
-      throw new Error('Please use the Fleegix.js XHR module, or define your own transport mechanism for downloading zone files.');
-    }
-    var url = _this.zoneFileBasePath + '/' + fileName;
-    if (!opts.async) {
-      var ret = fleegix.xhr.doReq({
-        url: url,
-        async: false
-      });
-      return _this.parseZones(ret);
-    }
-    else {
-      return fleegix.xhr.send({
-        url: url,
-        method: 'get',
-        handleSuccess: function (str) {
-          if (_this.parseZones(str)) {
-            if (typeof opts.callback == 'function') {
-              opts.callback();
-            }
-          }
-          return true;
-        },
-        handleErr: function () {
-          throw new Error('Error retrieving "' + url + '" zoneinfo file.');
-        }
-      });
-    }
   }
   function getRegionForTimezone(tz) {
     var exc = regionExceptions[tz];
@@ -385,19 +364,6 @@ timezoneJS.timezone = new function() {
         var link = _this.zones[tz];
         if (typeof link == 'string') {
           return getRegionForTimezone(link);
-        }
-        else {
-          // Backward-compat file hasn't loaded yet, try looking in there
-          if (!_this.loadedZones.backward) {
-            // This is for obvious legacy zones (e.g., Iceland) that
-            // don't even have a prefix like "America/" that look like
-            // normal zones
-            var parsed = _this.loadZoneFile('backward', true);
-            return getRegionForTimezone(tz);
-          }
-          else {
-            invalidTZError(tz);
-          }
         }
       }
       return ret;
@@ -418,18 +384,6 @@ timezoneJS.timezone = new function() {
     while (typeof zoneList == "string") {
       t = zoneList;
       zoneList = _this.zones[t];
-    }
-    if (!zoneList) {
-      // Backward-compat file hasn't loaded yet, try looking in there
-      if (!_this.loadedZones.backward) {
-        // This is for backward entries like "America/Fort_Wayne" that
-        // getRegionForTimezone *thinks* it has a region file and zone
-        // for (e.g., America => 'northamerica'), but in reality it's a
-        // legacy zone we need the backward file for
-        var parsed = _this.loadZoneFile('backward', true);
-        return getZone(dt, tz);
-      }
-      invalidTZError(t);
     }
     for(var i = 0; i < zoneList.length; i++) {
       var z = zoneList[i];
@@ -672,150 +626,7 @@ timezoneJS.timezone = new function() {
     return res;
   }
 
-  this.zoneFileBasePath;
-  this.zoneFiles = ['africa', 'antarctica', 'asia',
-    'australasia', 'backward', 'etcetera', 'europe',
-    'northamerica', 'pacificnew', 'southamerica'];
-  this.loadingSchemes = {
-    PRELOAD_ALL: 'preloadAll',
-    LAZY_LOAD: 'lazyLoad',
-    MANUAL_LOAD: 'manualLoad'
-  }
-  this.loadingScheme = this.loadingSchemes.LAZY_LOAD;
-  this.defaultZoneFile =
-    this.loadingScheme == this.loadingSchemes.PRELOAD_ALL ?
-      this.zoneFiles : 'northamerica';
-  this.loadedZones = {};
-  this.zones = {};
-  this.rules = {};
-
-  this.init = function (o) {
-    var opts = { async: true };
-    var sync = false;
-    var def = this.defaultZoneFile;
-    var parsed;
-    // Override default with any passed-in opts
-    for (var p in o) {
-      opts[p] = o[p];
-    }
-    if (typeof def == 'string') {
-      parsed = this.loadZoneFile(def, opts);
-    }
-    else {
-      if (opts.callback) {
-        throw new Error('Async load with callback is not supported for multiple default zonefiles.');
-      }
-      for (var i = 0; i < def.length; i++) {
-        parsed = this.loadZoneFile(def[i], opts);
-      }
-    }
-  };
-  // Get the zone files via XHR -- if the sync flag
-  // is set to true, it's being called by the lazy-loading
-  // mechanism, so the result needs to be returned inline
-  this.loadZoneFile = function (fileName, opts) {
-    if (typeof this.zoneFileBasePath == 'undefined') {
-      throw new Error('Please define a base path to your zone file directory -- timezoneJS.timezone.zoneFileBasePath.');
-    }
-    // ========================
-    // Define your own transport mechanism here
-    // and comment out the default below
-    // ========================
-    this.loadedZones[fileName] = true;
-    return builtInLoadZoneFile(fileName, opts);
-  };
-  this.loadZoneJSONData = function (url, sync) {
-    var processData = function (data) {
-      data = eval('('+ data +')');
-      for (var z in data.zones) {
-        _this.zones[z] = data.zones[z];
-      }
-      for (var r in data.rules) {
-        _this.rules[r] = data.rules[r];
-      }
-    }
-    if (sync) {
-      var data = fleegix.xhr.doGet(url);
-      processData(data);
-    }
-    else {
-      fleegix.xhr.doGet(processData, url);
-    }
-  };
-  this.loadZoneDataFromObject = function (data) {
-    if (!data) { return; }
-    for (var z in data.zones) {
-      _this.zones[z] = data.zones[z];
-    }
-    for (var r in data.rules) {
-      _this.rules[r] = data.rules[r];
-    }
-  };
-  this.getAllZones = function() {
-    var arr = [];
-    for (z in this.zones) { arr.push(z); }
-    return arr.sort();
-  };
-  this.parseZones = function(str) {
-    var s = '';
-    var lines = str.split('\n');
-    var arr = [];
-    var chunk = '';
-    var zone = null;
-    var rule = null;
-    for (var i = 0; i < lines.length; i++) {
-      l = lines[i];
-      if (l.match(/^\s/)) {
-        l = "Zone " + zone + l;
-      }
-      l = l.split("#")[0];
-      if (l.length > 3) {
-        arr = l.split(/\s+/);
-        chunk = arr.shift();
-        switch(chunk) {
-          case 'Zone':
-            zone = arr.shift();
-            if (!_this.zones[zone]) { _this.zones[zone] = [] }
-            _this.zones[zone].push(arr);
-            break;
-          case 'Rule':
-            rule = arr.shift();
-            if (!_this.rules[rule]) { _this.rules[rule] = [] }
-            _this.rules[rule].push(arr);
-            break;
-          case 'Link':
-            // No zones for these should already exist
-            if (_this.zones[arr[1]]) {
-              throw new Error('Error with Link ' + arr[1]);
-            }
-            // Create the link
-            _this.zones[arr[1]] = arr[0];
-            break;
-          case 'Leap':
-            break;
-          default:
-            // Fail silently
-            break;
-        }
-      }
-    }
-    return true;
-  };
   this.getTzInfo = function(dt, tz, isUTC) {
-    // Lazy-load any zones not yet loaded
-    if (this.loadingScheme == this.loadingSchemes.LAZY_LOAD) {
-      // Get the correct region for the zone
-      var zoneFile = getRegionForTimezone(tz);
-      if (!zoneFile) {
-        throw new Error('Not a valid timezone ID.');
-      }
-      else {
-        if (!this.loadedZones[zoneFile]) {
-          // Get the file and parse it -- use synchronous XHR
-          var parsed = this.loadZoneFile(zoneFile, true);
-        }
-      }
-    }
     var zone = getZone(dt, tz);
     var off = getBasicOffset(zone);
     // See if the offset needs adjustment

@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>timezoneJS Jasmine Spec Runner</title>
+  <link rel="stylesheet" type="text/css" href="lib/jasmine-1.0.2/jasmine.css">
+  <script type="text/javascript" src="lib/jasmine-1.0.2/jasmine.js"></script>
+  <script type="text/javascript" src="lib/jasmine-1.0.2/jasmine-html.js"></script>
+
+  <script type="text/javascript" src="../src/date.js"></script>
+  <script type="text/javascript" src="lib/tz_data.js"></script>
+  
+  <script type="text/javascript" src="lib/helper.js"></script>
+  
+  <script type="text/javascript" src="spec/TimezoneSpec.js"></script>
+
+</head>
+<body>
+  
+  <script type="text/javascript">
+    jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+    jasmine.getEnv().execute();
+  </script>
+
+</body>
+</html>
