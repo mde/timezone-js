@@ -569,11 +569,7 @@ timezoneJS.timezone = new function() {
     {
       var applicableRules = [];
 
-<<<<<<< HEAD
       for (var i = 0; ruleset && i < ruleset.length; i++)
-=======
-      for (var i = 0; i < ruleset.length; i++)
->>>>>>> cd7b2be... read only index properties
       {
         if ( Number( ruleset[ i ][ 0 ] ) <= year ) // Exclude future rules.
         {
