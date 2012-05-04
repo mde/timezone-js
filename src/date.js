@@ -24,8 +24,9 @@
  * Dov. B Katz (dov.katz@morganstanley.com),
  * Peter Bergström (pbergstr@mac.com)
 */
-if (typeof fleegix == 'undefined') { var fleegix = {}; }
-if (typeof timezoneJS == 'undefined') { timezoneJS = {}; }
+if (typeof $ === 'undefined') { var $ = {}; }
+if (typeof fleegix === 'undefined') { var fleegix = {}; }
+if (typeof timezoneJS === 'undefined') { timezoneJS = {}; }
 
 timezoneJS.Date = function () {
   var args = Array.prototype.slice.apply(arguments);
@@ -39,28 +40,28 @@ timezoneJS.Date = function () {
     dt = new Date();
   }
   // Date string or timestamp -- assumes floating
-  else if (args.length == 1) {
+  else if (args.length === 1) {
     dt = new Date(args[0]);
   }
   // year, month, [date,] [hours,] [minutes,] [seconds,] [milliseconds,] [tzId,] [utc]
   else {
     t = args[args.length-1];
     // Last arg is utc
-    if (typeof t == 'boolean') {
+    if (typeof t === 'boolean') {
       utc = args.pop();
       tz = args.pop();
     }
     // Last arg is tzId
-    else if (typeof t == 'string') {
+    else if (typeof t === 'string') {
       tz = args.pop();
-      if (tz == 'Etc/UTC' || tz == 'Etc/GMT') {
+      if (tz === 'Etc/UTC' || tz === 'Etc/GMT') {
         utc = true;
       }
     }
 
     // Date string (e.g., '12/27/2006')
     t = args[args.length-1];
-    if (typeof t == 'string') {
+    if (typeof t === 'string') {
       dt = new Date(args[0]);
     }
     // Date part numbers
@@ -236,9 +237,9 @@ timezoneJS.Date.prototype = {
     var hou = this.getHours();
     hou = String(hou);
     var min = String(this.getMinutes());
-    if (min.length == 1) { min = '0' + min; }
+    if (min.length === 1) { min = '0' + min; }
     var sec = String(this.getSeconds());
-    if (sec.length == 1) { sec = '0' + sec; }
+    if (sec.length === 1) { sec = '0' + sec; }
     str += ' ' + hou;
     str += ':' + min;
     str += ':' + sec;
@@ -274,14 +275,14 @@ timezoneJS.Date.prototype = {
     if (isNaN(n)) { throw new Error('Units must be a number.'); }
     var dt = new Date(this.year, this.month, this.date,
       this.hours, this.minutes, this.seconds, this.milliseconds);
-    var meth = unit == 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() +
+    var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() +
       unit.substr(1);
     dt['set' + meth](n);
     this.setFromDateObjProxy(dt);
   },
   setUTCAttribute: function (unit, n) {
     if (isNaN(n)) { throw new Error('Units must be a number.'); }
-    var meth = unit == 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() +
+    var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() +
       unit.substr(1);
     var dt = this.getUTCDateProxy();
     dt['setUTC' + meth](n);
@@ -289,7 +290,7 @@ timezoneJS.Date.prototype = {
     this.setFromDateObjProxy(dt, true);
   },
   setTimezone: function (tz) {
-    if (tz == 'Etc/UTC' || tz == 'Etc/GMT') {
+    if (tz === 'Etc/UTC' || tz === 'Etc/GMT') {
       this.utc = true;
     }
     this.timezone = tz;
@@ -341,34 +342,38 @@ timezoneJS.timezone = new function() {
     throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.');
   }
   function builtInLoadZoneFile(fileName, opts) {
-    if (typeof fleegix.xhr == 'undefined') {
-      throw new Error('Please use the Fleegix.js XHR module, or define your own transport mechanism for downloading zone files.');
+    if (typeof fleegix.xhr === 'undefined' && typeof $.ajax === 'undefined') {
+      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
     }
     var url = _this.zoneFileBasePath + '/' + fileName;
+    var errHandler = function () { throw new Error('Error retrieving "' + url + '" zoneinfo files'); }
+    var successHandler = function (str) {
+      if (_this.parseZones(str) && typeof opts.callback === 'function') {
+        opts.callback();
+      }
+      return true;
+    }
     if (!opts.async) {
-      var ret = fleegix.xhr.doReq({
-        url: url,
-        async: false
-      });
+      var ret =
+        fleegix.xhr
+        ? fleegix.xhr.doReq({ url: url, async: false })
+        : $.ajax({ url : url, async : false }).responseText;
       return _this.parseZones(ret);
     }
-    else {
+    else if (fleegix.xhr) {
       return fleegix.xhr.send({
         url: url,
         method: 'get',
-        handleSuccess: function (str) {
-          if (_this.parseZones(str)) {
-            if (typeof opts.callback == 'function') {
-              opts.callback();
-            }
-          }
-          return true;
-        },
-        handleErr: function () {
-          throw new Error('Error retrieving "' + url + '" zoneinfo file.');
-        }
+        handleSuccess: successHandler,
+        handleErr: errHandler
       });
     }
+    return $.ajax({
+      url : url,
+      method : 'GET',
+      error : errHandler,
+      success : successHandler
+    });
   }
   function getRegionForTimezone(tz) {
     var exc = regionExceptions[tz];
@@ -383,7 +388,7 @@ timezoneJS.timezone = new function() {
       // this TZ, check the 'backward' links
       if (!ret) {
         var link = _this.zones[tz];
-        if (typeof link == 'string') {
+        if (typeof link === 'string') {
           return getRegionForTimezone(link);
         }
         else {
@@ -415,7 +420,7 @@ timezoneJS.timezone = new function() {
     var t = tz;
     var zoneList = _this.zones[t];
     // Follow links to get to an acutal zone
-    while (typeof zoneList == "string") {
+    while (typeof zoneList === "string") {
       t = zoneList;
       zoneList = _this.zones[t];
     }
@@ -446,13 +451,13 @@ timezoneJS.timezone = new function() {
       var d = Date.UTC(yea, mon, dat, t[1], t[2], t[3]);
       if (dt.getTime() < d) { break; }
     }
-    if (i == zoneList.length) { throw new Error('No Zone found for "' + timezone + '" on ' + dt); }
+    if (i === zoneList.length) { throw new Error('No Zone found for "' + timezone + '" on ' + dt); }
     return zoneList[i];
 
   }
   function getBasicOffset(z) {
     var off = parseTimeString(z[0]);
-    var adj = z[0].indexOf('-') == 0 ? -1 : 1
+    var adj = z[0].indexOf('-') === 0 ? -1 : 1
     off = adj * (((off[1] * 60 + off[2]) *60 + off[3]) * 1000);
     return -off/60/1000;
   }
@@ -473,11 +478,11 @@ timezoneJS.timezone = new function() {
     var convertDateToUTC = function( date, type, rule ) {
       var offset = 0;
 
-      if(type == 'u' || type == 'g' || type == 'z') { // UTC
+      if(type === 'u' || type === 'g' || type === 'z') { // UTC
           offset = 0;
-      } else if(type == 's') { // Standard Time
+      } else if(type === 's') { // Standard Time
           offset = basicOffset;
-      } else if(type == 'w' || !type ) { // Wall Clock Time
+      } else if(type === 'w' || !type ) { // Wall Clock Time
           offset = getAdjustedOffset(basicOffset,rule);
       } else {
           throw("unknown type "+type);
@@ -564,7 +569,11 @@ timezoneJS.timezone = new function() {
     {
       var applicableRules = [];
 
+<<<<<<< HEAD
       for (var i = 0; ruleset && i < ruleset.length; i++)
+=======
+      for (var i = 0; i < ruleset.length; i++)
+>>>>>>> cd7b2be... read only index properties
       {
         if ( Number( ruleset[ i ][ 0 ] ) <= year ) // Exclude future rules.
         {
@@ -638,7 +647,7 @@ timezoneJS.timezone = new function() {
   function getAdjustedOffset(off, rule) {
     var save = rule[6];
     var t = parseTimeString(save);
-    var adj = save.indexOf('-') == 0 ? -1 : 1;
+    var adj = save.indexOf('-') === 0 ? -1 : 1;
     var ret = (adj*(((t[1] *60 + t[2]) * 60 + t[3]) * 1000));
     ret = ret/60/1000;
     ret -= off
@@ -683,7 +692,7 @@ timezoneJS.timezone = new function() {
   }
   this.loadingScheme = this.loadingSchemes.LAZY_LOAD;
   this.defaultZoneFile =
-    this.loadingScheme == this.loadingSchemes.PRELOAD_ALL ?
+    this.loadingScheme === this.loadingSchemes.PRELOAD_ALL ?
       this.zoneFiles : 'northamerica';
   this.loadedZones = {};
   this.zones = {};
@@ -698,7 +707,7 @@ timezoneJS.timezone = new function() {
     for (var p in o) {
       opts[p] = o[p];
     }
-    if (typeof def == 'string') {
+    if (typeof def === 'string') {
       parsed = this.loadZoneFile(def, opts);
     }
     else {
@@ -714,7 +723,7 @@ timezoneJS.timezone = new function() {
   // is set to true, it's being called by the lazy-loading
   // mechanism, so the result needs to be returned inline
   this.loadZoneFile = function (fileName, opts) {
-    if (typeof this.zoneFileBasePath == 'undefined') {
+    if (typeof this.zoneFileBasePath === 'undefined') {
       throw new Error('Please define a base path to your zone file directory -- timezoneJS.timezone.zoneFileBasePath.');
     }
     // ========================
@@ -735,11 +744,13 @@ timezoneJS.timezone = new function() {
       }
     }
     if (sync) {
-      var data = fleegix.xhr.doGet(url);
-      processData(data);
+      processData(fleegix.xhr
+        ? fleegix.xhr.doGet(url)
+        : $.ajax({ url : url, async : false }).responseText
+      );
     }
     else {
-      fleegix.xhr.doGet(processData, url);
+      return fleegix.xhr ? fleegix.xhr.doGet(processData, url) : $.ajax({ url : url, success : processData });
     }
   };
   this.loadZoneDataFromObject = function (data) {
@@ -803,7 +814,7 @@ timezoneJS.timezone = new function() {
   };
   this.getTzInfo = function(dt, tz, isUTC) {
     // Lazy-load any zones not yet loaded
-    if (this.loadingScheme == this.loadingSchemes.LAZY_LOAD) {
+    if (this.loadingScheme === this.loadingSchemes.LAZY_LOAD) {
       // Get the correct region for the zone
       var zoneFile = getRegionForTimezone(tz);
       if (!zoneFile) {
