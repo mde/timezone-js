@@ -28,6 +28,9 @@ if (typeof $ === 'undefined') { var $ = {}; }
 if (typeof fleegix === 'undefined') { var fleegix = {}; }
 if (typeof timezoneJS === 'undefined') { timezoneJS = {}; }
 
+timezoneJS.Days = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
+timezoneJS.Months = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];
+
 timezoneJS.Date = function () {
   var args = Array.prototype.slice.apply(arguments);
   var t = null;
@@ -231,19 +234,57 @@ timezoneJS.Date.prototype = {
   toLocaleDateString: function () {},
   toLocaleTimeString: function () {},
   toSource: function () {},
-  toString: function () {
-    // Get a quick looky at what's in there
-    var str = this.getFullYear() + '-' + (this.getMonth()+1) + '-' + this.getDate();
-    var hou = this.getHours();
-    hou = String(hou);
-    var min = String(this.getMinutes());
-    if (min.length === 1) { min = '0' + min; }
-    var sec = String(this.getSeconds());
-    if (sec.length === 1) { sec = '0' + sec; }
-    str += ' ' + hou;
-    str += ':' + min;
-    str += ':' + sec;
-    return str;
+  toISOString: function () {
+    return this.toString('yyyy-MM-ddTHH:mm:ss.SSS');
+  },
+  toOldString: function () {
+    return this.toString('yyyy-MM-dd HH:mm:ss');
+  },
+  toString: function (format) {
+    if (!format) return this.toOldString();
+    var _fixWidth = function (number, digits) {
+        if (typeof number !== "number") { throw "not a number: " + number; }
+        var s = number.toString();
+        if (number.length > digits) {
+            return number.substr(number.length - digits, number.length);
+        }
+        while (s.length < digits) {
+            s = '0' + s;
+        }
+        return s;
+    }
+    var result = format;
+    var _this = this;
+    var hours = this.getHours();
+    result = result.replace(/a+/g, function () { return 'k'; }); // fix the same characters in Month names
+    result = result.replace(/y+/g, function (token) { return _fixWidth(_this.getFullYear(), token.length); });
+    result = result.replace(/d+/g, function (token) { return _fixWidth(_this.getDate(), token.length); });
+    result = result.replace(/m+/g, function (token) { return _fixWidth(_this.getMinutes(), token.length); });
+    result = result.replace(/s+/g, function (token) { return _fixWidth(_this.getSeconds(), token.length); });
+    result = result.replace(/S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length); });
+    result = result.replace(/M+/g, function (token) {
+        var _month = _this.getMonth(),
+            _len = token.length;
+        if (_len > 3) {
+            return Timestamp.months[_month];
+        } else if (_len > 2) {
+            return Timestamp.months[_month].substring(0, _len);
+        }
+        return _fixWidth(_this.getMonth() + 1, _len);
+    });
+    result = result.replace(/k+/g, function () {
+        if (hours >= 12) {
+            if (hours > 12) {
+                hours -= 12;
+            }
+            return 'PM';
+        }
+        return 'AM';
+    });
+    result = result.replace(/H+/g, function (token) { return _fixWidth(hours, token.length); });
+    result = result.replace(/E+/g, function (token) { return timezoneJS.Days[_this.getDay()].substring(0, token.length); });
+    result = result.replace(/Z+/gi, function () { return _this.getTimeZoneAbbreviation() });
+    return result;
   },
   toUTCString: function () {},
   valueOf: function () {
