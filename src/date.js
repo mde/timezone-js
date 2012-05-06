@@ -98,39 +98,22 @@ timezoneJS.Date.prototype = {
   getFullYear: function () { return this.year; },
   getMonth: function () { return this.month; },
   getYear: function () { return this.year; },
-  getHours: function () {
-    return this.hours;
-  },
-  getMilliseconds: function () {
-    return this.milliseconds;
-  },
-  getMinutes: function () {
-    return this.minutes;
-  },
-  getSeconds: function () {
-    return this.seconds;
-  },
+  getHours: function () { return this.hours; },
+  getMilliseconds: function () { return this.milliseconds; },
+  getMinutes: function () { return this.minutes; },
+  getSeconds: function () { return this.seconds; },
   getTime: function () {
     var dt = Date.UTC(this.year, this.month, this.date,
       this.hours, this.minutes, this.seconds, this.milliseconds);
     return dt + (this.getTimezoneOffset()*60*1000);
   },
-  getTimezone: function () {
-    return this.timezone;
-  },
-  getTimezoneOffset: function () {
-    var info = this.getTimezoneInfo();
-    return info.tzOffset;
-  },
-  getTimezoneAbbreviation: function () {
-    var info = this.getTimezoneInfo();
-    return info.tzAbbr;
-  },
+  getTimezone: function () { return this.timezone; },
+  getTimezoneOffset: function () { return this.getTimezoneInfo().tzOffset; },
+  getTimezoneAbbreviation: function () { return this.getTimezoneInfo().tzAbbr; },
   getTimezoneInfo: function () {
     var res;
     if (this.utc) {
-      res = { tzOffset: 0,
-        tzAbbr: 'UTC' };
+      res = { tzOffset: 0, tzAbbr: 'UTC' };
     }
     else {
       if (this._useCache) {
@@ -145,8 +128,7 @@ timezoneJS.Date.prototype = {
         }
         // Floating -- use local offset
         else {
-          res = { tzOffset: this.getLocalOffset(),
-            tzAbbr: null };
+          res = { tzOffset: this.getLocalOffset(), tzAbbr: null };
         }
         this._tzInfo = res;
         this._useCache = true;
@@ -154,108 +136,62 @@ timezoneJS.Date.prototype = {
     }
     return res;
   },
-  getUTCDate: function () {
-    return this.getUTCDateProxy().getUTCDate();
-  },
-  getUTCDay: function () {
-    return this.getUTCDateProxy().getUTCDay();
-  },
-  getUTCFullYear: function () {
-    return this.getUTCDateProxy().getUTCFullYear();
-  },
-  getUTCHours: function () {
-    return this.getUTCDateProxy().getUTCHours();
-  },
-  getUTCMilliseconds: function () {
-    return this.getUTCDateProxy().getUTCMilliseconds();
-  },
-  getUTCMinutes: function () {
-    return this.getUTCDateProxy().getUTCMinutes();
-  },
-  getUTCMonth: function () {
-    return this.getUTCDateProxy().getUTCMonth();
-  },
-  getUTCSeconds: function () {
-    return this.getUTCDateProxy().getUTCSeconds();
-  },
-  setDate: function (n) {
-    this.setAttribute('date', n);
-  },
-  setFullYear: function (n) {
-    this.setAttribute('year', n);
-  },
-  setMonth: function (n) {
-    this.setAttribute('month', n);
-  },
-  setYear: function (n) {
-    this.setUTCAttribute('year', n);
-  },
-  setHours: function (n) {
-    this.setAttribute('hours', n);
-  },
-  setMilliseconds: function (n) {
-    this.setAttribute('milliseconds', n);
-  },
-  setMinutes: function (n) {
-    this.setAttribute('minutes', n);
-  },
-  setSeconds: function (n) {
-    this.setAttribute('seconds', n);
-  },
+  getUTCDate: function () { return this.getUTCDateProxy().getUTCDate(); },
+  getUTCDay: function () { return this.getUTCDateProxy().getUTCDay(); },
+  getUTCFullYear: function () { return this.getUTCDateProxy().getUTCFullYear(); },
+  getUTCHours: function () { return this.getUTCDateProxy().getUTCHours(); },
+  getUTCMilliseconds: function () { return this.getUTCDateProxy().getUTCMilliseconds(); },
+  getUTCMinutes: function () { return this.getUTCDateProxy().getUTCMinutes(); },
+  getUTCMonth: function () { return this.getUTCDateProxy().getUTCMonth(); },
+  getUTCSeconds: function () { return this.getUTCDateProxy().getUTCSeconds(); },
+  setDate: function (n) { this.setAttribute('date', n); },
+  setFullYear: function (n) { this.setAttribute('year', n); },
+  setMonth: function (n) { this.setAttribute('month', n); },
+  setYear: function (n) { this.setUTCAttribute('year', n); },
+  setHours: function (n) { this.setAttribute('hours', n); },
+  setMilliseconds: function (n) { this.setAttribute('milliseconds', n); },
+  setMinutes: function (n) { this.setAttribute('minutes', n); },
+  setSeconds: function (n) { this.setAttribute('seconds', n); },
   setTime: function (n) {
     if (isNaN(n)) { throw new Error('Units must be a number.'); }
     var dt = new Date(0);
     dt.setUTCMilliseconds(n - (this.getTimezoneOffset()*60*1000));
     this.setFromDateObjProxy(dt, true);
   },
-  setUTCDate: function (n) {
-    this.setUTCAttribute('date', n);
-  },
-  setUTCFullYear: function (n) {
-    this.setUTCAttribute('year', n);
-  },
-  setUTCHours: function (n) {
-    this.setUTCAttribute('hours', n);
-  },
-  setUTCMilliseconds: function (n) {
-    this.setUTCAttribute('milliseconds', n);
-  },
-  setUTCMinutes: function (n) {
-    this.setUTCAttribute('minutes', n);
-  },
-  setUTCMonth: function (n) {
-    this.setUTCAttribute('month', n);
-  },
-  setUTCSeconds: function (n) {
-    this.setUTCAttribute('seconds', n);
-  },
+  setUTCDate: function (n) { this.setUTCAttribute('date', n); },
+  setUTCFullYear: function (n) { this.setUTCAttribute('year', n); },
+  setUTCHours: function (n) { this.setUTCAttribute('hours', n); },
+  setUTCMilliseconds: function (n) { this.setUTCAttribute('milliseconds', n); },
+  setUTCMinutes: function (n) { this.setUTCAttribute('minutes', n); },
+  setUTCMonth: function (n) { this.setUTCAttribute('month', n); },
+  setUTCSeconds: function (n) { this.setUTCAttribute('seconds', n); },
   toGMTString: function () {},
   toLocaleString: function () {},
   toLocaleDateString: function () {},
   toLocaleTimeString: function () {},
   toSource: function () {},
-  toISOString: function () {
-    return this.toString('yyyy-MM-ddTHH:mm:ss.SSS');
-  },
-  toOldString: function () {
-    return this.toString('yyyy-MM-dd HH:mm:ss');
-  },
-  toString: function (format) {
-    if (!format) return this.toOldString();
+  toISOString: function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSS'); },
+  toString: function (format, tz) {
+    if (!format) return this.toString('yyyy-MM-dd HH:mm:ss');
     var _fixWidth = function (number, digits) {
-        if (typeof number !== "number") { throw "not a number: " + number; }
-        var s = number.toString();
-        if (number.length > digits) {
-            return number.substr(number.length - digits, number.length);
-        }
-        while (s.length < digits) {
-            s = '0' + s;
-        }
-        return s;
+      if (typeof number !== "number") { throw "not a number: " + number; }
+      var s = number.toString();
+      if (number.length > digits) {
+          return number.substr(number.length - digits, number.length);
+      }
+      while (s.length < digits) {
+          s = '0' + s;
+      }
+      return s;
     }
     var result = format;
+    var tzInfo = tz ? timezoneJS.timezone.getTzInfo(new Date(this.getTime()), tz) : this.getTimezoneInfo();
     var _this = this;
-    var hours = this.getHours();
+    if (tz) {
+      _this = this.clone();
+      _this.setUTCMinutes(_this.getUTCMinutes() - tzInfo.tzOffset);
+    }
+    var hours = _this.getHours();
     result = result.replace(/a+/g, function () { return 'k'; }); // fix the same characters in Month names
     result = result.replace(/y+/g, function (token) { return _fixWidth(_this.getFullYear(), token.length); });
     result = result.replace(/d+/g, function (token) { return _fixWidth(_this.getDate(), token.length); });
@@ -263,33 +199,31 @@ timezoneJS.Date.prototype = {
     result = result.replace(/s+/g, function (token) { return _fixWidth(_this.getSeconds(), token.length); });
     result = result.replace(/S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length); });
     result = result.replace(/M+/g, function (token) {
-        var _month = _this.getMonth(),
-            _len = token.length;
-        if (_len > 3) {
-            return Timestamp.months[_month];
-        } else if (_len > 2) {
-            return Timestamp.months[_month].substring(0, _len);
-        }
-        return _fixWidth(_this.getMonth() + 1, _len);
+      var _month = _this.getMonth(),
+          _len = token.length;
+      if (_len > 3) {
+          return timezoneJS.Months[_month];
+      } else if (_len > 2) {
+          return timezoneJS.Months[_month].substring(0, _len);
+      }
+      return _fixWidth(_month + 1, _len);
     });
     result = result.replace(/k+/g, function () {
-        if (hours >= 12) {
-            if (hours > 12) {
-                hours -= 12;
-            }
-            return 'PM';
+      if (hours >= 12) {
+        if (hours > 12) {
+          hours -= 12;
         }
-        return 'AM';
+        return 'PM';
+      }
+      return 'AM';
     });
     result = result.replace(/H+/g, function (token) { return _fixWidth(hours, token.length); });
     result = result.replace(/E+/g, function (token) { return timezoneJS.Days[_this.getDay()].substring(0, token.length); });
-    result = result.replace(/Z+/gi, function () { return _this.getTimeZoneAbbreviation() });
+    result = result.replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
     return result;
   },
   toUTCString: function () {},
-  valueOf: function () {
-    return this.getTime();
-  },
+  valueOf: function () { return this.getTime(); },
   clone: function () {
     return new timezoneJS.Date(this.year, this.month, this.date,
       this.hours, this.minutes, this.seconds, this.milliseconds,

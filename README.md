@@ -128,4 +128,17 @@ Just to give you an idea of the difference -- merely stripping out the comments 
 
 The `src` directory has a sample Ruby script that you can use to strip comments from Olson data files.
 
+## Development
 
+Feel free to fork and modify at your own will.
+
+### Testing
+
+This library uses Jasmine to test. In order to run the tests, download
+[Jasmine](http://pivotal.github.com/jasmine/download.html) and put `jasmine-html.js`, `jasmine.css` and `jasmine.js` into `tests/jasmine`. 
+Then grab timezone data files from [iana](http://www.iana.org/time-zones) and put them in `tests/tz`.
+
+Since Chrome doesn't allow AJAX calls to grab files locally. Open
+`test.html` in Firefox/Safari.
+
+Feel free to add more tests.
