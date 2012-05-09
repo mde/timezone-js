@@ -1,12 +1,12 @@
 var fs = require('fs');
 var path = require('path');
+var tty = require('tty');
 
 var tz = {zones: {}, rules: {}};
 
 var stdout = process.stdout;
 var stdin = process.openStdin();
-var stdio = process.binding('stdio');
-stdio.setRawMode();
+tty.setRawMode(true);
 
 stdout.write('Enter a comma separated list of zones.\n')
 stdout.write('Example: africa, northamerica\n')
@@ -17,7 +17,7 @@ stdin.on('data', function (c) {
   c = c + '';
   switch (c) {
     case '\n': case '\r': case '\u0004':
-      stdio.setRawMode(false);
+      tty.setRawMode(false);
       stdout.write('\n');
       stdin.pause();
       parseZone(zoneStr.split(','));
