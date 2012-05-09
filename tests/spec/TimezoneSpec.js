@@ -143,4 +143,15 @@ describe('Timezone', function () {
     
   });
 
+  it('should correctly convert aready converted date', function() { // it should be noop
+    var dt = new timezoneJS.Date(2011, 6, 10, 0, 0, 10, 'Etc/UTC');
+    dt.convertToTimezone('America/New_York');
+    var h = dt.getHours();
+    var d = dt.getDay();
+    dt.convertToTimezone('America/New_York');
+
+    expect(dt.getHours()).toBe(h)
+    expect(dt.getDay()).toBe(d)
+  });
+
 });
