@@ -38,13 +38,21 @@
   timezoneJS.VERSION = '1.0.0';
 
   var $ = root.$ || root.jQuery || root.Zepto
-    , fleegix = root.fleegix;
+  , fleegix = root.fleegix;
 
-  var Days = timezoneJS.Days = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
-  var Months = timezoneJS.Months = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];
+  var Days = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var Months = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   /**
    * Private utility functions
+   */
+  /**
+   * Format a number to the length = digits. For ex:
+   * _fixWidth(2, 2) = '02'
+   * _fixWidth(1998, 2) = '98'
+   * @param Number number number to be formatted
+   * @param Number digits length of formatted string
+   * @return String string representation of number
    */
   var _fixWidth = function (number, digits) {
     if (typeof number !== "number") { throw "not a number: " + number; }
@@ -60,11 +68,12 @@
 
   /**
    * Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
-   * Options include
+   * @param Object opts include
    * - url : url to ajax query
    * - async : true for asynchronous, false otherwise. If false, return value will be response from URL. This is true by default
    * - success : success callback function
    * - error : error callback function
+   * @return String response from URL if async is false, request object if async is true
    */
   var _transport = function (opts) {
     if ((!fleegix || typeof fleegix.xhr === 'undefined') && typeof $.ajax === 'undefined') {
@@ -79,26 +88,29 @@
       : $.ajax({ url : opts.url, async : false }).responseText;
     }
     return fleegix && fleegix.xhr
-      ? fleegix.xhr.send({
-          url : opts.url,
-          method : 'get',
-          handleSuccess : opts.success,
-          handleErr : opts.error
-        })
-      : $.ajax({
-          url : opts.url,
-          method : 'GET',
-          error : opts.error,
-          success : opts.success
-        });
+    ? fleegix.xhr.send({
+      url : opts.url,
+      method : 'get',
+      handleSuccess : opts.success,
+      handleErr : opts.error
+    })
+    : $.ajax({
+      url : opts.url,
+      method : 'GET',
+      error : opts.error,
+      success : opts.success
+    });
   }
 
+  /**
+   * Constructor.
+   */
   timezoneJS.Date = function () {
     var args = Array.prototype.slice.apply(arguments)
-      , t = null
-      , dt = null
-      , tz = null
-      , utc = false;
+    , t = null
+    , dt = null
+    , tz = null
+    , utc = false;
 
     // If 1st argument is an array, we can use it as a list of arguments itself
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
@@ -247,34 +259,34 @@
       }
       var hours = _this.getHours();
       return result
-        .replace(/a+/g, function () { return 'k'; }) // fix the same characters in Month names
-        .replace(/y+/g, function (token) { return _fixWidth(_this.getFullYear(), token.length); })
-        .replace(/d+/g, function (token) { return _fixWidth(_this.getDate(), token.length); })
-        .replace(/m+/g, function (token) { return _fixWidth(_this.getMinutes(), token.length); })
-        .replace(/s+/g, function (token) { return _fixWidth(_this.getSeconds(), token.length); })
-        .replace(/S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length); })
-        .replace(/M+/g, function (token) {
-          var _month = _this.getMonth(),
-          _len = token.length;
-          if (_len > 3) {
-            return timezoneJS.Months[_month];
-          } else if (_len > 2) {
-            return timezoneJS.Months[_month].substring(0, _len);
+      .replace(/a+/g, function () { return 'k'; }) // fix the same characters in Month names
+      .replace(/y+/g, function (token) { return _fixWidth(_this.getFullYear(), token.length); })
+      .replace(/d+/g, function (token) { return _fixWidth(_this.getDate(), token.length); })
+      .replace(/m+/g, function (token) { return _fixWidth(_this.getMinutes(), token.length); })
+      .replace(/s+/g, function (token) { return _fixWidth(_this.getSeconds(), token.length); })
+      .replace(/S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length); })
+      .replace(/M+/g, function (token) {
+        var _month = _this.getMonth(),
+        _len = token.length;
+        if (_len > 3) {
+          return timezoneJS.Months[_month];
+        } else if (_len > 2) {
+          return timezoneJS.Months[_month].substring(0, _len);
+        }
+        return _fixWidth(_month + 1, _len);
+      })
+      .replace(/k+/g, function () {
+        if (hours >= 12) {
+          if (hours > 12) {
+            hours -= 12;
           }
-          return _fixWidth(_month + 1, _len);
-        })
-        .replace(/k+/g, function () {
-          if (hours >= 12) {
-            if (hours > 12) {
-              hours -= 12;
-            }
-            return 'PM';
-          }
-          return 'AM';
-        })
-        .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
-        .replace(/E+/g, function (token) { return timezoneJS.Days[_this.getDay()].substring(0, token.length); })
-        .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
+          return 'PM';
+        }
+        return 'AM';
+      })
+      .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
+      .replace(/E+/g, function (token) { return timezoneJS.Days[_this.getDay()].substring(0, token.length); })
+      .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
     },
     toUTCString: function () { return this.toGMTString(); },
     valueOf: function () { return this.getTime(); },
@@ -355,7 +367,7 @@
   };
 
 
-  timezoneJS.timezone = new function() {
+  timezoneJS.timezone = new function () {
     var _this = this;
     var monthMap = {};
     var dayMap = {};
@@ -379,16 +391,20 @@
     function invalidTZError(t) { throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
-      var errHandler = function () { throw new Error('Error retrieving "' + url + '" zoneinfo files'); }
-      var successHandler = function (str) {
-        if (_this.parseZones(str) && typeof opts.callback === 'function') {
-          opts.callback();
-        }
-        return true;
-      }
       return !opts.async
-        ? _this.parseZones(_transport({ url : url, async : false }))
-        : _transport({ url : url, success : successHandler, error : errHandler });
+      ? _this.parseZones(_transport({ url : url, async : false }))
+      : _transport({
+        url : url,
+        success : function () {
+          if (_this.parseZones(str) && typeof opts.callback === 'function') {
+            opts.callback();
+          }
+          return true;
+        },
+        error : function () {
+          throw new Error('Error retrieving "' + url + '" zoneinfo files');
+        }
+      });
     }
     function getRegionForTimezone(tz) {
       var exc = regionExceptions[tz];
@@ -398,23 +414,21 @@
       }
       reg = tz.split('/')[0];
       ret = regionMap[reg];
-       // If there's nothing listed in the main regions for this TZ, check the 'backward' links
-      if (!ret) {
-        var link = _this.zones[tz];
-        if (typeof link === 'string') {
-          return getRegionForTimezone(link);
-        }
-        // Backward-compat file hasn't loaded yet, try looking in there
-        if (!_this.loadedZones.backward) {
-           // This is for obvious legacy zones (e.g., Iceland) that don't even have a prefix like "America/" that look like normal zones
-          var parsed = _this.loadZoneFile('backward', true);
-          return getRegionForTimezone(tz);
-        }
-        else {
-          invalidTZError(tz);
-        }
+      // If there's nothing listed in the main regions for this TZ, check the 'backward' links
+      if (ret) {
+        return ret;
       }
-      return ret;
+      var link = _this.zones[tz];
+      if (typeof link === 'string') {
+        return getRegionForTimezone(link);
+      }
+      // Backward-compat file hasn't loaded yet, try looking in there
+      if (!_this.loadedZones.backward) {
+        // This is for obvious legacy zones (e.g., Iceland) that don't even have a prefix like "America/" that look like normal zones
+        _this.loadZoneFile('backward', true);
+        return getRegionForTimezone(tz);
+      }
+      invalidTZError(tz);
     }
     function parseTimeString(str) {
       var pat = /(\d+)(?::0*(\d*))?(?::0*(\d*))?([wsugz])?$/;
@@ -435,11 +449,13 @@
       if (!zoneList) {
         // Backward-compat file hasn't loaded yet, try looking in there
         if (!_this.loadedZones.backward) {
-          // This is for backward entries like "America/Fort_Wayne" that
-          // getRegionForTimezone *thinks* it has a region file and zone
-          // for (e.g., America => 'northamerica'), but in reality it's a
-          // legacy zone we need the backward file for
-          var parsed = _this.loadZoneFile('backward', true);
+          /**
+           * This is for backward entries like "America/Fort_Wayne" that
+           * getRegionForTimezone *thinks* it has a region file and zone
+           * for (e.g., America => 'northamerica'), but in reality it's a
+           * legacy zone we need the backward file for
+           */
+          _this.loadZoneFile('backward', true);
           return getZone(dt, tz);
         }
         invalidTZError(t);
@@ -466,38 +482,42 @@
     function getBasicOffset(z) {
       var off = parseTimeString(z[0]);
       var adj = z[0].indexOf('-') === 0 ? -1 : 1
-      off = adj * (((off[1] * 60 + off[2]) *60 + off[3]) * 1000);
+      off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
       return -off/60/1000;
     }
 
-    // if isUTC is true, date is given in UTC, otherwise it's given
-    // in local time (ie. date.getUTC*() returns local time components)
-    function getRule( date, zone, isUTC ) {
+    /**
+     * if isUTC is true, date is given in UTC, otherwise it's given
+     * in local time (ie. date.getUTC*() returns local time components)
+     */
+    function getRule(date, zone, isUTC) {
       var ruleset = zone[1];
-      var basicOffset = getBasicOffset( zone );
+      var basicOffset = getBasicOffset(zone);
 
-      // Convert a date to UTC. Depending on the 'type' parameter, the date
-      // parameter may be:
-      // 'u', 'g', 'z': already UTC (no adjustment)
-      // 's': standard time (adjust for time zone offset but not for DST)
-      // 'w': wall clock time (adjust for both time zone and DST offset)
-      //
-      // DST adjustment is done using the rule given as third argument
-      var convertDateToUTC = function( date, type, rule ) {
+      /**
+       * Convert a date to UTC. Depending on the 'type' parameter, the date
+       * parameter may be:
+       * 'u', 'g', 'z': already UTC (no adjustment)
+       * 's': standard time (adjust for time zone offset but not for DST)
+       * 'w': wall clock time (adjust for both time zone and DST offset)
+       *
+       * DST adjustment is done using the rule given as third argument
+       */
+      var convertDateToUTC = function (date, type, rule) {
         var offset = 0;
 
-        if(type === 'u' || type === 'g' || type === 'z') { // UTC
+        if (type === 'u' || type === 'g' || type === 'z') { // UTC
           offset = 0;
-        } else if(type === 's') { // Standard Time
+        } else if (type === 's') { // Standard Time
           offset = basicOffset;
-        } else if(type === 'w' || !type ) { // Wall Clock Time
+        } else if (type === 'w' || !type) { // Wall Clock Time
           offset = getAdjustedOffset(basicOffset,rule);
         } else {
           throw("unknown type "+type);
         }
-        offset *= 60*1000; // to millis
+        offset *= 60 * 1000; // to millis
 
-        return new Date( date.getTime() + offset );
+        return new Date(date.getTime() + offset);
       }
 
       // Step 1:  Find applicable rules for this year.
@@ -510,143 +530,131 @@
       // Step 5:  Sort the rules by effective date.
       // Step 6:  Apply the most recent rule before the current time.
 
-      var convertRuleToExactDateAndTime = function( yearAndRule, prevRule )
-      {
-        var year = yearAndRule[0];
-        var rule = yearAndRule[1];
+      var convertRuleToExactDateAndTime = function (yearAndRule, prevRule) {
+        var year = yearAndRule[0]
+        , rule = yearAndRule[1]
+        , months = {} // Assume that the rule applies to the year of the given date.
+        , days = {};
 
-        // Assume that the rule applies to the year of the given date.
-        var months = {
-          "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5,
-          "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
-        };
-
-        var days = {
-          "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6
+        /**
+         * { "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }
+         */
+        for (var i = 0; i < Months.length; i++) {
+          months[Months[i].substr(0, 3)] = i;
         }
 
-        var hms = parseTimeString( rule[ 5 ] );
+        /**
+         * { "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6 }
+         */
+        for (var i = 0; i < Days.length; i++) {
+          days[Days[i].substr(0, 3).toLowerCase()] = i;
+        }
+
+        var hms = parseTimeString(rule[5]);
         var effectiveDate;
 
-        if ( !isNaN( rule[ 4 ] ) ) // If we have a specific date, use that!
-          {
-            effectiveDate = new Date( Date.UTC( year, months[ rule[ 3 ] ], rule[ 4 ], hms[ 1 ], hms[ 2 ], hms[ 3 ], 0 ) );
+        if (!isNaN(rule[4])) { // If we have a specific date, use that!
+          effectiveDate = new Date(Date.UTC(year, months[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
+        }
+        else { // Let's hunt for the date.
+          var targetDay
+          , operator;
+
+          if (rule[4].substr(0, 4) === "last") { // Example: lastThu
+            // Start at the last day of the month and work backward.
+            effectiveDate = new Date(Date.UTC(year, months[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
+            targetDay = days[rule[4].substr(4, 3).toLowerCase()];
+            operator = "<=";
           }
-          else // Let's hunt for the date.
-            {
-              var targetDay,
-              operator;
-
-              if ( rule[ 4 ].substr( 0, 4 ) === "last" ) // Example: lastThu
-                {
-                  // Start at the last day of the month and work backward.
-                  effectiveDate = new Date( Date.UTC( year, months[ rule[ 3 ] ] + 1, 1, hms[ 1 ] - 24, hms[ 2 ], hms[ 3 ], 0 ) );
-                  targetDay = days[ rule[ 4 ].substr( 4, 3 ).toLowerCase( ) ];
-                  operator = "<=";
-                }
-                else // Example: Sun>=15
-                  {
-                    // Start at the specified date.
-                    effectiveDate = new Date( Date.UTC( year, months[ rule[ 3 ] ], rule[ 4 ].substr( 5 ), hms[ 1 ], hms[ 2 ], hms[ 3 ], 0 ) );
-                    targetDay = days[ rule[ 4 ].substr( 0, 3 ).toLowerCase( ) ];
-                    operator = rule[ 4 ].substr( 3, 2 );
-                  }
-
-                  var ourDay = effectiveDate.getUTCDay( );
-
-                  if ( operator === ">=" ) // Go forwards.
-                    {
-                      effectiveDate.setUTCDate( effectiveDate.getUTCDate( ) + ( targetDay - ourDay + ( ( targetDay < ourDay ) ? 7 : 0 ) ) );
-                    }
-                    else // Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
-                      {
-                        effectiveDate.setUTCDate( effectiveDate.getUTCDate( ) + ( targetDay - ourDay - ( ( targetDay > ourDay ) ? 7 : 0 ) ) );
-                      }
-            }
-
-            // if previous rule is given, correct for the fact that the starting time of the current
-            // rule may be specified in local time
-            if(prevRule) {
-              effectiveDate = convertDateToUTC(effectiveDate, hms[4], prevRule);
-            }
-
-            return effectiveDate;
-      }
-
-      var findApplicableRules = function( year, ruleset )
-      {
-        var applicableRules = [];
-
-        for (var i = 0; ruleset && i < ruleset.length; i++)
-        {
-          if ( Number( ruleset[ i ][ 0 ] ) <= year ) // Exclude future rules.
-            {
-              if (
-                Number( ruleset[ i ][ 1 ] ) >= year                                            // Date is in a set range.
-                  || ( Number( ruleset[ i ][ 0 ] ) === year && ruleset[ i ][ 1 ] === "only" )    // Date is in an "only" year.
-                || ruleset[ i ][ 1 ] === "max"                                                 // We're in a range from the start year to infinity.
-              )
-              {
-                // It's completely okay to have any number of matches here.
-                // Normally we should only see two, but that doesn't preclude other numbers of matches.
-                // These matches are applicable to this year.
-                applicableRules.push( [year, ruleset[ i ]] );
-              }
-            }
+          else { // Example: Sun>=15
+            // Start at the specified date.
+            effectiveDate = new Date(Date.UTC(year, months[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
+            targetDay = days[rule[4].substr(0, 3).toLowerCase()];
+            operator = rule[4].substr(3, 2);
+          }
+          var ourDay = effectiveDate.getUTCDay();
+          if (operator === ">=") { // Go forwards.
+            effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay + ((targetDay < ourDay) ? 7 : 0)));
+          }
+          else { // Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
+            effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay - ((targetDay > ourDay) ? 7 : 0)));
+          }
         }
 
+        // if previous rule is given, correct for the fact that the starting time of the current
+        // rule may be specified in local time
+        if (prevRule) {
+          effectiveDate = convertDateToUTC(effectiveDate, hms[4], prevRule);
+        }
+        return effectiveDate;
+      }
+
+      var findApplicableRules = function (year, ruleset) {
+        var applicableRules = [];
+        for (var i = 0; ruleset && i < ruleset.length; i++) {
+          if (Number(ruleset[i][0]) <= year && // Exclude future rules.
+              (
+                Number(ruleset[i][1]) >= year || // Date is in a set range.
+                  (Number(ruleset[i][0]) === year && ruleset[i][1] === "only") ||    // Date is in an "only" year.
+                    ruleset[i][1] === "max"                                                 // We're in a range from the start year to infinity.
+          )
+             ) {
+               /**
+                * It's completely okay to have any number of matches here.
+                * Normally we should only see two, but that doesn't preclude other numbers of matches.
+                * These matches are applicable to this year.
+                */
+               applicableRules.push([year, ruleset[i]]);
+             }
+        }
         return applicableRules;
       }
 
-      var compareDates = function( a, b, prev )
-      {
-        if ( a.constructor !== Date ) {
-          a = convertRuleToExactDateAndTime( a, prev );
-        } else if(prev) {
-          a = convertDateToUTC(a, isUTC?'u':'w', prev);
+      var compareDates = function (a, b, prev) {
+        if (a.constructor !== Date) {
+          a = convertRuleToExactDateAndTime(a, prev);
+        } else if (prev) {
+          a = convertDateToUTC(a, isUTC ? 'u' : 'w', prev);
         }
-        if ( b.constructor !== Date ) {
-          b = convertRuleToExactDateAndTime( b, prev );
-        } else if(prev) {
-          b = convertDateToUTC(b, isUTC?'u':'w', prev);
+        if (b.constructor !== Date) {
+          b = convertRuleToExactDateAndTime(b, prev);
+        } else if (prev) {
+          b = convertDateToUTC(b, isUTC ? 'u' : 'w', prev);
         }
-
-        a = Number( a );
-        b = Number( b );
-
+        a = Number(a);
+        b = Number(b);
         return a - b;
       }
 
-      var year = date.getUTCFullYear( );
+      var year = date.getUTCFullYear();
       var applicableRules;
 
-      applicableRules = findApplicableRules( year, _this.rules[ ruleset ] );
-      applicableRules.push( date );
+      applicableRules = findApplicableRules(year, _this.rules[ruleset]);
+      applicableRules.push(date);
       // While sorting, the time zone in which the rule starting time is specified
       // is ignored. This is ok as long as the timespan between two DST changes is
       // larger than the DST offset, which is probably always true.
       // As the given date may indeed be close to a DST change, it may get sorted
       // to a wrong position (off by one), which is corrected below.
-      applicableRules.sort( compareDates );
+      applicableRules.sort(compareDates);
 
-      if ( applicableRules.indexOf( date ) < 2 ) { // If there are not enough past DST rules...
-        applicableRules = applicableRules.concat(findApplicableRules( year-1, _this.rules[ ruleset ] ));
-        applicableRules.sort( compareDates );
+      if (applicableRules.indexOf(date) < 2) { // If there are not enough past DST rules...
+        applicableRules = applicableRules.concat(findApplicableRules(year-1, _this.rules[ruleset]));
+        applicableRules.sort(compareDates);
       }
 
-      var pinpoint = applicableRules.indexOf( date );
-      if ( pinpoint > 1 && compareDates( date, applicableRules[pinpoint-1], applicableRules[pinpoint-2][1] ) < 0 ) {
+      var pinpoint = applicableRules.indexOf(date);
+      if (pinpoint > 1 && compareDates(date, applicableRules[pinpoint-1], applicableRules[pinpoint-2][1]) < 0) {
         // the previous rule does not really apply, take the one before that
-        return applicableRules[ pinpoint - 2 ][1];
-      } else if ( pinpoint > 0 && pinpoint < applicableRules.length - 1 && compareDates( date, applicableRules[pinpoint+1], applicableRules[pinpoint-1][1] ) > 0) {
+        return applicableRules[pinpoint - 2][1];
+      } else if (pinpoint > 0 && pinpoint < applicableRules.length - 1 && compareDates(date, applicableRules[pinpoint+1], applicableRules[pinpoint-1][1]) > 0) {
         // the next rule does already apply, take that one
-        return applicableRules[ pinpoint + 1 ][1];
-      } else if ( pinpoint === 0 ) {
+        return applicableRules[pinpoint + 1][1];
+      } else if (pinpoint === 0) {
         // no applicable rule found in this and in previous year
         return null;
-      } else {
-        return applicableRules[ pinpoint - 1 ][1];
       }
+      return applicableRules[pinpoint - 1][1];
     }
     function getAdjustedOffset(off, rule) {
       var save = rule[6];
@@ -686,154 +694,147 @@
     }
 
     this.zoneFileBasePath;
-    this.zoneFiles = ['africa', 'antarctica', 'asia',
-      'australasia', 'backward', 'etcetera', 'europe',
-      'northamerica', 'pacificnew', 'southamerica'];
-      this.loadingSchemes = {
-        PRELOAD_ALL: 'preloadAll',
-        LAZY_LOAD: 'lazyLoad',
-        MANUAL_LOAD: 'manualLoad'
-      }
-      this.loadingScheme = this.loadingSchemes.LAZY_LOAD;
-      this.defaultZoneFile =
-        this.loadingScheme === this.loadingSchemes.PRELOAD_ALL ?
-        this.zoneFiles : 'northamerica';
-      this.loadedZones = {};
-      this.zones = {};
-      this.rules = {};
+    this.zoneFiles = ['africa', 'antarctica', 'asia', 'australasia', 'backward', 'etcetera', 'europe', 'northamerica', 'pacificnew', 'southamerica'];
+    this.loadingSchemes = {
+      PRELOAD_ALL: 'preloadAll',
+      LAZY_LOAD: 'lazyLoad',
+      MANUAL_LOAD: 'manualLoad'
+    };
+    this.loadingScheme = this.loadingSchemes.LAZY_LOAD;
+    this.defaultZoneFile = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
+    ? this.zoneFiles
+    : 'northamerica';
+    this.loadedZones = {};
+    this.zones = {};
+    this.rules = {};
 
-      this.init = function (o) {
-        var opts = { async: true };
-        var sync = false;
-        var def = this.defaultZoneFile;
-        var parsed;
-        // Override default with any passed-in opts
-        for (var p in o) {
-          opts[p] = o[p];
+    this.init = function (o) {
+      var opts = { async: true };
+      var def = this.defaultZoneFile;
+      // Override default with any passed-in opts
+      for (var p in o) {
+        opts[p] = o[p];
+      }
+      if (typeof def === 'string') {
+        this.loadZoneFile(def, opts);
+      }
+      else {
+        if (opts.callback) {
+          throw new Error('Async load with callback is not supported for multiple default zonefiles.');
         }
-        if (typeof def === 'string') {
-          parsed = this.loadZoneFile(def, opts);
+        for (var i = 0; i < def.length; i++) {
+          this.loadZoneFile(def[i], opts);
         }
-        else {
-          if (opts.callback) {
-            throw new Error('Async load with callback is not supported for multiple default zonefiles.');
-          }
-          for (var i = 0; i < def.length; i++) {
-            parsed = this.loadZoneFile(def[i], opts);
-          }
-        }
-      };
-      // Get the zone files via XHR -- if the sync flag
-      // is set to true, it's being called by the lazy-loading
-      // mechanism, so the result needs to be returned inline
-      this.loadZoneFile = function (fileName, opts) {
-        if (typeof this.zoneFileBasePath === 'undefined') {
-          throw new Error('Please define a base path to your zone file directory -- timezoneJS.timezone.zoneFileBasePath.');
-        }
-        // ========================
-        // Define your own transport mechanism here
-        // and comment out the default below
-        // ========================
-        this.loadedZones[fileName] = true;
-        return builtInLoadZoneFile(fileName, opts);
-      };
-      this.loadZoneJSONData = function (url, sync) {
-        var processData = function (data) {
-          data = eval('('+ data +')');
-          for (var z in data.zones) {
-            _this.zones[z] = data.zones[z];
-          }
-          for (var r in data.rules) {
-            _this.rules[r] = data.rules[r];
-          }
-        }
-        return sync
-          ? processData(_transport({ url : url, async : false }))
-          : _transport({ url : url, success : processData });
-      };
-      this.loadZoneDataFromObject = function (data) {
-        if (!data) { return; }
+      }
+    };
+
+    /**
+     * Get the zone files via XHR -- if the sync flag
+     * is set to true, it's being called by the lazy-loading
+     * mechanism, so the result needs to be returned inline
+     */
+    this.loadZoneFile = function (fileName, opts) {
+      if (typeof this.zoneFileBasePath === 'undefined') {
+        throw new Error('Please define a base path to your zone file directory -- timezoneJS.timezone.zoneFileBasePath.');
+      }
+      this.loadedZones[fileName] = true;
+      return builtInLoadZoneFile(fileName, opts);
+    };
+    this.loadZoneJSONData = function (url, sync) {
+      var processData = function (data) {
+        data = eval('('+ data +')');
         for (var z in data.zones) {
           _this.zones[z] = data.zones[z];
         }
         for (var r in data.rules) {
           _this.rules[r] = data.rules[r];
         }
-      };
-      this.getAllZones = function() {
-        var arr = [];
-        for (z in this.zones) { arr.push(z); }
-        return arr.sort();
-      };
-      this.parseZones = function(str) {
-        var s = '';
-        var lines = str.split('\n');
-        var arr = [];
-        var chunk = '';
-        var zone = null;
-        var rule = null;
-        for (var i = 0; i < lines.length; i++) {
-          l = lines[i];
-          if (l.match(/^\s/)) {
-            l = "Zone " + zone + l;
-          }
-          l = l.split("#")[0];
-          if (l.length > 3) {
-            arr = l.split(/\s+/);
-            chunk = arr.shift();
-            switch(chunk) {
-              case 'Zone':
-                zone = arr.shift();
+      }
+      return sync
+      ? processData(_transport({ url : url, async : false }))
+      : _transport({ url : url, success : processData });
+    };
+    this.loadZoneDataFromObject = function (data) {
+      if (!data) { return; }
+      for (var z in data.zones) {
+        _this.zones[z] = data.zones[z];
+      }
+      for (var r in data.rules) {
+        _this.rules[r] = data.rules[r];
+      }
+    };
+    this.getAllZones = function () {
+      var arr = [];
+      for (z in this.zones) { arr.push(z); }
+      return arr.sort();
+    };
+    this.parseZones = function (str) {
+      var s = ''
+      , lines = str.split('\n')
+      , arr = []
+      , chunk = ''
+      , l //Declare l here to avoid accidental global var declaration
+      , zone = null
+      , rule = null;
+      for (var i = 0; i < lines.length; i++) {
+        l = lines[i];
+        if (l.match(/^\s/)) {
+          l = "Zone " + zone + l;
+        }
+        l = l.split("#")[0];
+        if (l.length > 3) {
+          arr = l.split(/\s+/);
+          chunk = arr.shift();
+          switch(chunk) {
+            case 'Zone':
+              zone = arr.shift();
               if (!_this.zones[zone]) { _this.zones[zone] = [] }
-              _this.zones[zone].push(arr);
+                _this.zones[zone].push(arr);
               break;
-              case 'Rule':
-                rule = arr.shift();
+            case 'Rule':
+              rule = arr.shift();
               if (!_this.rules[rule]) { _this.rules[rule] = [] }
-              _this.rules[rule].push(arr);
+                _this.rules[rule].push(arr);
               break;
-              case 'Link':
-                // No zones for these should already exist
-                if (_this.zones[arr[1]]) {
+            case 'Link':
+              // No zones for these should already exist
+              if (_this.zones[arr[1]]) {
                 throw new Error('Error with Link ' + arr[1]);
               }
               // Create the link
               _this.zones[arr[1]] = arr[0];
               break;
-              case 'Leap':
-                break;
-              default:
-                // Fail silently
-                break;
-            }
+            case 'Leap':
+              break;
+            default:
+              // Fail silently
+              break;
           }
         }
-        return true;
-      };
-      this.getTzInfo = function(dt, tz, isUTC) {
-        // Lazy-load any zones not yet loaded
-        if (this.loadingScheme === this.loadingSchemes.LAZY_LOAD) {
-          // Get the correct region for the zone
-          var zoneFile = getRegionForTimezone(tz);
-          if (!zoneFile) {
-            throw new Error('Not a valid timezone ID.');
-          }
-          else {
-            if (!this.loadedZones[zoneFile]) {
-              // Get the file and parse it -- use synchronous XHR
-              var parsed = this.loadZoneFile(zoneFile, true);
-            }
-          }
-        }
-        var zone = getZone(dt, tz);
-        var off = getBasicOffset(zone);
-        // See if the offset needs adjustment
-        var rule = getRule(dt, zone, isUTC);
-        if (rule) {
-          off = getAdjustedOffset(off, rule);
-        }
-        var abbr = getAbbreviation(zone, rule);
-        return { tzOffset: off, tzAbbr: abbr };
       }
+    };
+    this.getTzInfo = function (dt, tz, isUTC) {
+      // Lazy-load any zones not yet loaded
+      if (this.loadingScheme === this.loadingSchemes.LAZY_LOAD) {
+        // Get the correct region for the zone
+        var zoneFile = getRegionForTimezone(tz);
+        if (!zoneFile) {
+          throw new Error('Not a valid timezone ID.');
+        }
+        else if (!this.loadedZones[zoneFile]) {
+          // Get the file and parse it -- use synchronous XHR
+          this.loadZoneFile(zoneFile, true);
+        }
+      }
+      var zone = getZone(dt, tz);
+      var off = getBasicOffset(zone);
+      // See if the offset needs adjustment
+      var rule = getRule(dt, zone, isUTC);
+      if (rule) {
+        off = getAdjustedOffset(off, rule);
+      }
+      var abbr = getAbbreviation(zone, rule);
+      return { tzOffset: off, tzAbbr: abbr };
+    };
   }
 }).call(this);
