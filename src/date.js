@@ -100,7 +100,7 @@
       error : opts.error,
       success : opts.success
     });
-  }
+  };
 
   /**
    * Constructor.
@@ -189,28 +189,20 @@
     getTimezoneOffset: function () { return this.getTimezoneInfo().tzOffset; },
     getTimezoneAbbreviation: function () { return this.getTimezoneInfo().tzAbbr; },
     getTimezoneInfo: function () {
+      if (this.utc) return { tzOffset: 0, tzAbbr: 'UTC' };
+      if (this._useCache) return this._tzInfo;
       var res;
-      if (this.utc) {
-        res = { tzOffset: 0, tzAbbr: 'UTC' };
+      if (this.timezone) {
+        var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
+        var tz = this.timezone;
+        res = timezoneJS.timezone.getTzInfo(dt, tz);
       }
+      // Floating -- use local offset
       else {
-        if (this._useCache) {
-          res = this._tzInfo;
-        }
-        else {
-          if (this.timezone) {
-            var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
-            var tz = this.timezone;
-            res = timezoneJS.timezone.getTzInfo(dt, tz);
-          }
-          // Floating -- use local offset
-          else {
-            res = { tzOffset: this.getLocalOffset(), tzAbbr: null };
-          }
-          this._tzInfo = res;
-          this._useCache = true;
-        }
+        res = { tzOffset: this.getLocalOffset(), tzAbbr: null };
       }
+      this._tzInfo = res;
+      this._useCache = true;
       return res;
     },
     getUTCDate: function () { return this.getUTCDateProxy().getUTCDate(); },
@@ -312,15 +304,13 @@
     setAttribute: function (unit, n) {
       if (isNaN(n)) { throw new Error('Units must be a number.'); }
       var dt = new Date(this._extractTimeArray());
-      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() +
-        unit.substr(1);
+      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
       dt['set' + meth](n);
       this.setFromDateObjProxy(dt);
     },
     setUTCAttribute: function (unit, n) {
       if (isNaN(n)) { throw new Error('Units must be a number.'); }
-      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() +
-        unit.substr(1);
+      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
       var dt = this.getUTCDateProxy();
       dt['setUTC' + meth](n);
       dt.setUTCMinutes(dt.getUTCMinutes() - this.getTimezoneOffset());
@@ -353,16 +343,13 @@
       }
       a = Math.floor(y / 100);
       var b = 2 - a + Math.floor(a / 4);
-      jDt = Math.floor(365.25 * (y + 4716)) +
-        Math.floor(30.6001 * (m + 1)) +
-        d + b - 1524;
+      jDt = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524;
       return jDt;
     },
     getLocalOffset: function () {
       var dt = this;
-      var d = new Date(dt.getYear(), dt.getMonth(), dt.getDate(),
-                       dt.getHours(), dt.getMinutes(), dt.getSeconds());
-                       return d.getTimezoneOffset();
+      var d = new Date(dt.getYear(), dt.getMonth(), dt.getDate(), dt.getHours(), dt.getMinutes(), dt.getSeconds());
+      return d.getTimezoneOffset();
     }
   };
 
@@ -409,15 +396,11 @@
     function getRegionForTimezone(tz) {
       var exc = regionExceptions[tz];
       var ret;
-      if (exc) {
-        return exc;
-      }
+      if (exc) return exc;
       reg = tz.split('/')[0];
       ret = regionMap[reg];
       // If there's nothing listed in the main regions for this TZ, check the 'backward' links
-      if (ret) {
-        return ret;
-      }
+      if (ret) return ret;
       var link = _this.zones[tz];
       if (typeof link === 'string') {
         return getRegionForTimezone(link);
@@ -460,7 +443,7 @@
         }
         invalidTZError(t);
       }
-      for(var i = 0; i < zoneList.length; i++) {
+      for (var i = 0; i < zoneList.length; i++) {
         var z = zoneList[i];
         if (!z[3]) { break; }
         var yea = parseInt(z[3], 10);
@@ -716,15 +699,13 @@
         opts[p] = o[p];
       }
       if (typeof def === 'string') {
-        this.loadZoneFile(def, opts);
+        return this.loadZoneFile(def, opts);
       }
-      else {
-        if (opts.callback) {
-          throw new Error('Async load with callback is not supported for multiple default zonefiles.');
-        }
-        for (var i = 0; i < def.length; i++) {
-          this.loadZoneFile(def[i], opts);
-        }
+      if (opts.callback) {
+        throw new Error('Async load with callback is not supported for multiple default zonefiles.');
+      }
+      for (var i = 0; i < def.length; i++) {
+        this.loadZoneFile(def[i], opts);
       }
     };
 
@@ -785,7 +766,8 @@
         if (l.length > 3) {
           arr = l.split(/\s+/);
           chunk = arr.shift();
-          switch(chunk) {
+          // Ignore Leap
+          switch (chunk) {
             case 'Zone':
               zone = arr.shift();
               if (!_this.zones[zone]) { _this.zones[zone] = [] }
@@ -804,11 +786,6 @@
               // Create the link
               _this.zones[arr[1]] = arr[0];
               break;
-            case 'Leap':
-              break;
-            default:
-              // Fail silently
-              break;
           }
         }
       }
@@ -821,7 +798,7 @@
         if (!zoneFile) {
           throw new Error('Not a valid timezone ID.');
         }
-        else if (!this.loadedZones[zoneFile]) {
+        if (!this.loadedZones[zoneFile]) {
           // Get the file and parse it -- use synchronous XHR
           this.loadZoneFile(zoneFile, true);
         }
