@@ -9,7 +9,7 @@
     "url": "git://github.com/mde/timezone-js.git"
   },
   "scripts": {
-    "test": "jasmine-node"
+    "test": "jasmine-node spec"
   },
   "engines": {
     "node": "~0.6.0"
