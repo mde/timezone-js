@@ -17,13 +17,6 @@ var fs = require('fs');
       if (opts.async) {
         if (typeof opts.success !== 'function') return;
         opts.error = opts.error || console.error;
-      }
-      var callbackFn = function (err, data) {
-        return err
-        ? typeof opts.error === 'function' && opts.error(err)
-        : typeof opts.success === 'function' && opts.success(data);
-      }
-      if (opts.async) {
         return fs.readFile(opts.url, 'utf8', function (err, data) {
           return err ? opts.error(err) : opts.success(data);
         });
