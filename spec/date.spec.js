@@ -1,3 +1,6 @@
+var TestUtils = require('./test-utils')
+  , timezoneJS = TestUtils.getTimezoneJS();
+
 describe('timezoneJS.Date', function () {
   it('should have correct format when initialized', function () {
     var date = new timezoneJS.Date();

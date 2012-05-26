@@ -1,3 +1,6 @@
 .DS*
 tests/tz
 tests/jasmine
+lib
+node_modules
+docs

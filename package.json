@@ -1,0 +1,21 @@
+{
+  "author": "Matthew Eernisse <mde@fleegix.org> (http://fleegix.org)",
+  "name": "timezone-js",
+  "description": "JavaScript timezone library based on Olson timezone data",
+  "version": "1.0.0",
+  "homepage": "https://github.com/mde/timezone-js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mde/timezone-js.git"
+  },
+  "scripts": {
+    "test": "jasmine-node spec"
+  },
+  "engines": {
+    "node": "~0.6.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jasmine-node" : "latest"
+  }
+}

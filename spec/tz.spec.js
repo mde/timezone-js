@@ -1,3 +1,6 @@
+var TestUtils = require('./test-utils')
+  , parseISO = TestUtils.parseISO
+  , timezoneJS = TestUtils.getTimezoneJS();
 describe('TimezoneJS', function () {
   it('should get America/Chicago DST time correctly', function () {
     var testDstLeap = function (arr) {
