@@ -1,3 +1,11 @@
+// timezoneJS Library
+// -----
+// The `timezoneJS.Date` object gives you full-blown timezone support, independent from the timezone set on the end-user's machine running the browser. It uses the Olson zoneinfo files for its timezone data.
+//
+// The constructor function and setter methods use proxy JavaScript Date objects behind the scenes, so you can use strings like '10/22/2006' with the constructor. You also get the same sensible wraparound behavior with numeric parameters (like setting a value of 14 for the month wraps around to the next March).
+//
+// The other significant difference from the built-in JavaScript Date is that `timezoneJS.Date` also has named properties that store the values of year, month, date, etc., so it can be directly serialized to JSON and used for data transfer.
+
 /*
  * Copyright 2010 Matthew Eernisse (mde@fleegix.org)
  * and Open Source Applications Foundation
@@ -26,6 +34,9 @@
  * Long Ho
  */
 (function () {
+  // Standard initialization stuff to make sure the library is
+  // usable on both client and server (node) side.
+
   var root = this;
 
   var timezoneJS;
@@ -37,23 +48,23 @@
 
   timezoneJS.VERSION = '1.0.0';
 
+  // Grab the ajax library from global context.
+  // This can be jQuery, Zepto or fleegix.
+  // You can also specify your own transport mechanism by declaring
+  // `timezoneJS.timezone.transport` to a `function`. More details will follow
   var $ = root.$ || root.jQuery || root.Zepto
-  , fleegix = root.fleegix;
+    , fleegix = root.fleegix
+  // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
+    , Days = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    , Months = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-  var Days = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  var Months = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-  /**
-   * Private utility functions
-   */
-  /**
-   * Format a number to the length = digits. For ex:
-   * _fixWidth(2, 2) = '02'
-   * _fixWidth(1998, 2) = '98'
-   * @param Number number number to be formatted
-   * @param Number digits length of formatted string
-   * @return String string representation of number
-   */
+  // Format a number to the length = digits. For ex:
+  //
+  // `_fixWidth(2, 2) = '02'`
+  //
+  // `_fixWidth(1998, 2) = '98'`
+  //
+  // This is used to pad numbers in converting date to string in ISO standard.
   var _fixWidth = function (number, digits) {
     if (typeof number !== "number") { throw "not a number: " + number; }
     var s = number.toString();
@@ -66,15 +77,18 @@
     return s;
   }
 
-  /**
-   * Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
-   * @param Object opts include
-   * - url : url to ajax query
-   * - async : true for asynchronous, false otherwise. If false, return value will be response from URL. This is true by default
-   * - success : success callback function
-   * - error : error callback function
-   * @return String response from URL if async is false, request object if async is true
-   */
+  // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
+  //
+  // Object `opts` include
+  //
+  // - `url`: url to ajax query
+  //
+  // - `async`: true for asynchronous, false otherwise. If false, return value will be response from URL. This is true by default
+  //
+  // - `success`: success callback function
+  //
+  // - `error`: error callback function
+  // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
     if ((!fleegix || typeof fleegix.xhr === 'undefined') && typeof $.ajax === 'undefined') {
       throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
@@ -102,9 +116,7 @@
     });
   };
 
-  /**
-   * Constructor.
-   */
+  // Constructor, which is similar to that of the native Date object itself
   timezoneJS.Date = function () {
     var args = Array.prototype.slice.apply(arguments)
     , t = null
@@ -127,7 +139,7 @@
     // year, month, [date,] [hours,] [minutes,] [seconds,] [milliseconds,] [tzId,] [utc]
     else {
       t = args[args.length - 1];
-      // Last arg is utc
+      // Last arg is utc, then the next to last would be timezone
       if (typeof t === 'boolean') {
         utc = args.pop();
         tz = args.pop();
@@ -171,6 +183,7 @@
     this.setFromDateObjProxy(dt);
   };
 
+  // Implements most of the native Date object
   timezoneJS.Date.prototype = {
     getDate: function () { return this.date; },
     getDay: function () { return this._day; },
@@ -181,6 +194,7 @@
     getMilliseconds: function () { return this.milliseconds; },
     getMinutes: function () { return this.minutes; },
     getSeconds: function () { return this.seconds; },
+    // Time adjusted to user-specified timezone
     getTime: function () {
       var dt = Date.UTC.apply(root, this._extractTimeArray());
       return dt + (this.getTimezoneOffset() * 60 * 1000);
@@ -189,15 +203,17 @@
     getTimezoneOffset: function () { return this.getTimezoneInfo().tzOffset; },
     getTimezoneAbbreviation: function () { return this.getTimezoneInfo().tzAbbr; },
     getTimezoneInfo: function () {
+      // If UTC, easy!
       if (this.utc) return { tzOffset: 0, tzAbbr: 'UTC' };
       if (this._useCache) return this._tzInfo;
       var res;
+      // If timezone is specified, get the correct timezone info based on the Date given
       if (this.timezone) {
         var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
         var tz = this.timezone;
         res = timezoneJS.timezone.getTzInfo(dt, tz);
       }
-      // Floating -- use local offset
+      // If no timezone was specified, use the local browser offset
       else {
         res = { tzOffset: this.getLocalOffset(), tzAbbr: null };
       }
@@ -240,23 +256,33 @@
     toLocaleTimeString: function () {},
     toSource: function () {},
     toISOString: function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSS'); },
+    // Allows different format following ISO8601 format:
     toString: function (format, tz) {
+      // Default format is the same as toISOString
       if (!format) return this.toString('yyyy-MM-dd HH:mm:ss');
       var result = format;
       var tzInfo = tz ? timezoneJS.timezone.getTzInfo(new Date(this.getTime()), tz) : this.getTimezoneInfo();
       var _this = this;
+      // If timezone is specified, get a clone of the current Date object and modify it
       if (tz) {
         _this = this.clone();
         _this.setUTCMinutes(_this.getUTCMinutes() - tzInfo.tzOffset);
       }
       var hours = _this.getHours();
       return result
-      .replace(/a+/g, function () { return 'k'; }) // fix the same characters in Month names
+      // fix the same characters in Month names
+      .replace(/a+/g, function () { return 'k'; })
+      // `y`: year
       .replace(/y+/g, function (token) { return _fixWidth(_this.getFullYear(), token.length); })
+      // `d`: date
       .replace(/d+/g, function (token) { return _fixWidth(_this.getDate(), token.length); })
+      // `m`: minute
       .replace(/m+/g, function (token) { return _fixWidth(_this.getMinutes(), token.length); })
+      // `s`: second
       .replace(/s+/g, function (token) { return _fixWidth(_this.getSeconds(), token.length); })
+      // `S`: millisecond
       .replace(/S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length); })
+      // `M`: month. Note: `MM` will be the numeric representation (e.g February is 02) but `MMM` will be text representation (e.g February is Feb)
       .replace(/M+/g, function (token) {
         var _month = _this.getMonth(),
         _len = token.length;
@@ -267,6 +293,7 @@
         }
         return _fixWidth(_month + 1, _len);
       })
+      // `k`: AM/PM
       .replace(/k+/g, function () {
         if (hours >= 12) {
           if (hours > 12) {
@@ -276,8 +303,11 @@
         }
         return 'AM';
       })
+      // `H`: hour
       .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
+      // `E`: day
       .replace(/E+/g, function (token) { return timezoneJS.Days[_this.getDay()].substring(0, token.length); })
+      // `Z`: timezone abbreviation
       .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
     },
     toUTCString: function () { return this.toGMTString(); },
@@ -379,10 +409,10 @@
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
       return !opts.async
-      ? _this.parseZones(_transport({ url : url, async : false }))
-      : _transport({
+      ? _this.parseZones(_this.transport({ url : url, async : false }))
+      : _this.transport({
         url : url,
-        success : function () {
+        success : function (str) {
           if (_this.parseZones(str) && typeof opts.callback === 'function') {
             opts.callback();
           }
@@ -732,8 +762,8 @@
         }
       }
       return sync
-      ? processData(_transport({ url : url, async : false }))
-      : _transport({ url : url, success : processData });
+      ? processData(_this.transport({ url : url, async : false }))
+      : _this.transport({ url : url, success : processData });
     };
     this.loadZoneDataFromObject = function (data) {
       if (!data) { return; }
@@ -781,7 +811,7 @@
             case 'Link':
               // No zones for these should already exist
               if (_this.zones[arr[1]]) {
-                throw new Error('Error with Link ' + arr[1]);
+                throw new Error('Error with Link ' + arr[1] + '. Cannot create link of a preexisted zone.');
               }
               // Create the link
               _this.zones[arr[1]] = arr[0];
@@ -790,6 +820,8 @@
         }
       }
     };
+    // Expose transport mechanism and allow overwrite
+    this.transport = _transport;
     this.getTzInfo = function (dt, tz, isUTC) {
       // Lazy-load any zones not yet loaded
       if (this.loadingScheme === this.loadingSchemes.LAZY_LOAD) {
