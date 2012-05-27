@@ -135,7 +135,8 @@ The source code is annotated and doc can be generated with `docco`
 
 ### Testing
 
-This library uses jasmine-node as the testing framework. In order to run
-the tests, do `npm test`
+This library requires timezone info from [IANA database](http://www.iana.org/time-zones). Download the data and put timezone files into lib/tz
+
+It also uses jasmine-node as the testing framework. In order to run the tests, do `npm test`
 
 Feel free to add more tests.

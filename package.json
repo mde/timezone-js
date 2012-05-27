@@ -1,5 +1,13 @@
 {
   "author": "Matthew Eernisse <mde@fleegix.org> (http://fleegix.org)",
+  "contributors" : [
+    "Jan Niehusmann",
+    "Ricky Romero",
+    "Preston Hunt <prestonhunt@gmail.com>",
+    "Dov. B Katz <dov.katz@morganstanley.com>",
+    "Peter Bergström <pbergstr@mac.com>",
+    "Long Ho <holevietlong@gmail.com> (http://www.longlho.me)"
+  ],
   "name": "timezone-js",
   "description": "JavaScript timezone library based on Olson timezone data",
   "version": "1.0.0",
