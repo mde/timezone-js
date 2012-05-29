@@ -41,7 +41,7 @@ namespace('test', function () {
 
 });
 
-desc('Runs the Jake tests.');
+desc('Runs the tests.');
 task('test', ['test:run'], function () {});
 
 namespace('doc', function () {
@@ -68,7 +68,7 @@ namespace('doc', function () {
 
 });
 
-desc('Generate docs for Jake');
+desc('Generates docs.');
 task('doc', ['doc:generate']);
 
 var p = new jake.NpmPublishTask('timezone-js', [
