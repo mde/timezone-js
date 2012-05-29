@@ -10,7 +10,7 @@
   ],
   "name": "timezone-js",
   "description": "JavaScript timezone library based on Olson timezone data",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "homepage": "https://github.com/mde/timezone-js",
   "repository": {
     "type": "git",
@@ -24,6 +24,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "jasmine-node" : "latest"
+    "jasmine-node": "latest"
   }
 }
