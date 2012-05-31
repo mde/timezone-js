@@ -164,12 +164,13 @@
         dt = new Date(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
       }
     }
-    this._useCache = false;
-    this._tzInfo = {};
-    this._tzAbbr = '';
+      
     this._extractTimeArray = function () {
       return [this.year, this.month, this.date, this.hours, this.minutes, this.seconds, this.milliseconds, this.timezone];
-    };
+    };          
+    this._useCache = false;
+    this._tzInfo = {};
+    this._tzAbbr = '';    
     this._day = 0;
     this.year = 0;
     this.month = 0;
@@ -347,11 +348,16 @@
       this.setFromDateObjProxy(dt, true);
     },
     setTimezone: function (tz) {
-      if (tz === 'Etc/UTC' || tz === 'Etc/GMT') {
-        this.utc = true;
-      }
+      var previousOffset = this.getTimezoneInfo().tzOffset;
+        
+      this.utc = tz === 'Etc/UTC' || tz === 'Etc/GMT';      
       this.timezone = tz;
-      this._useCache = false;
+      this._useCache = false;      
+      
+      // Create a new time that offsets by the delta of the two timezones
+      _this = this.clone();      
+      _this.setUTCMinutes(_this.getUTCMinutes() - this.getTimezoneInfo().tzOffset + previousOffset);
+      this.setFromDateObjProxy(_this, this.utc);
     },
     removeTimezone: function () {
       this.utc = false;
