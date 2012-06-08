@@ -115,12 +115,12 @@ describe('timezoneJS.Date', function () {
     expect(dt.toJSON()).toEqual(dtA.toJSON());
   });
 
-  it('should take in Date object as constructor', function () {
+  it('should be able to set hours', function () {
     var dtA = new Date(0)
       , dt = new timezoneJS.Date(dtA);
 
     dt.setHours(6);
-    expect(dt.getTime()).toEqual(6 * 60000);
+    expect(dt.getHours()).toEqual(6);
   });
 
 

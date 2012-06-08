@@ -334,7 +334,7 @@
     },
     setAttribute: function (unit, n) {
       if (isNaN(n)) { throw new Error('Units must be a number.'); }
-      var dt = new Date(this._extractTimeArray());
+      var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
       var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
       dt['set' + meth](n);
       this.setFromDateObjProxy(dt);
