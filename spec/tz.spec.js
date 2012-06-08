@@ -125,4 +125,13 @@ describe('TimezoneJS', function () {
     var dt = timezoneJS.timezone.getTzInfo(parseISO('2010-03-14T08:00:00'), 'America/Chicago', true); // CST, from local time
     expect(dt.tzAbbr).toEqual('CDT');
   });
+
+  //This is for issue #1 in github
+  it('should not get null in getAllZones', function () {
+    var zones = timezoneJS.timezone.getAllZones();
+    for (var i = 0; i < zones; i++) {
+      expect(zones[i]).not.toBe(null);
+    }
+  });
+
 });
