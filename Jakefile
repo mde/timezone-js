@@ -55,7 +55,7 @@ namespace('doc', function () {
   }, {async: true});
 
   task('clobber', function () {
-    var cmd = 'rm -fr ./doc/*';
+    var cmd = 'rm -fr ./docs';
     jake.exec([cmd], function () {
       console.log('Clobbered old docs.');
       complete();
