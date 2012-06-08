@@ -80,6 +80,16 @@ describe('timezoneJS.Date', function () {
     expect(dtA.toISOString()).toEqual(dtA.toISOString());
   });
 
+  it('should output toGMTString correctly', function () {
+    var dtA = new Date()
+      , dt = new timezoneJS.Date();
+
+    dtA.setTime(dtA.getTime());
+    expect(dtA.getTime()).toEqual(dtA.getTime());
+    expect(dtA.toGMTString()).toEqual(dtA.toGMTString());
+  });
+
+
   it('should output toJSON correctly', function () {
     var dtA = new Date()
       , dt = new timezoneJS.Date();
