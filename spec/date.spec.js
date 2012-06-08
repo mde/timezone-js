@@ -99,5 +99,21 @@ describe('timezoneJS.Date', function () {
     expect(dt.toJSON()).toEqual(dtA.toJSON());
   });
 
+  it('should take in millis as constructor', function () {
+    var dtA = new Date(0)
+      , dt = new timezoneJS.Date(dtA.getTime());
+
+    expect(dt.getTime()).toEqual(dtA.getTime());
+    expect(dt.toJSON()).toEqual(dtA.toJSON());
+  });
+
+  it('should take in millis as constructor', function () {
+    var dtA = new Date(0)
+      , dt = new timezoneJS.Date(dtA);
+
+    expect(dt.getTime()).toEqual(dtA.getTime());
+    expect(dt.toJSON()).toEqual(dtA.toJSON());
+  });
+
 
 });
