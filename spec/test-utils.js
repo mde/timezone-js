@@ -10,7 +10,20 @@ var fs = require('fs');
     TestUtils = root.TestUtils = {};
   }
 
-  var timezoneJS = (function (timezoneJS) {
+  var init = function (timezoneJS, options) {
+    var opts = {
+      async: false,
+      loadingScheme: timezoneJS.timezone.loadingSchemes.LAZY_LOAD
+    };
+    for (var k in (options || {})) {
+      opts[k] = options[k];
+    }
+    //Reset everything
+    timezoneJS.timezone.zones = {};
+    timezoneJS.timezone.rules = {};
+    timezoneJS.timezone.loadedZones = {};
+
+    //Set up again
     timezoneJS.timezone.zoneFileBasePath = 'lib/tz';
     timezoneJS.timezone.transport = function (opts) {
       // No success handler, what's the point?
@@ -23,13 +36,13 @@ var fs = require('fs');
       }
       return fs.readFileSync(opts.url, 'utf8');
     };
-    timezoneJS.timezone.defaultZoneFile = ['asia', 'backward', 'northamerica', 'southamerica', 'europe'];
-    timezoneJS.timezone.init({async: false});
+    timezoneJS.timezone.loadingScheme = opts.loadingScheme;
+    timezoneJS.timezone.init(opts);
     return timezoneJS;
-  })(require('../src/date'));
+  };
 
-  TestUtils.getTimezoneJS = function () {
-    return timezoneJS;
+  TestUtils.getTimezoneJS = function (options) {
+    return init(require('../src/date'), options);
   }
 
   TestUtils.parseISO = function (timestring) {

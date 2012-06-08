@@ -717,16 +717,15 @@
       MANUAL_LOAD: 'manualLoad'
     };
     this.loadingScheme = this.loadingSchemes.LAZY_LOAD;
-    this.defaultZoneFile = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
-    ? this.zoneFiles
-    : 'northamerica';
     this.loadedZones = {};
     this.zones = {};
     this.rules = {};
 
     this.init = function (o) {
       var opts = { async: true };
-      var def = this.defaultZoneFile;
+      var def = this.defaultZoneFile = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
+      ? this.zoneFiles
+      : 'northamerica';
       // Override default with any passed-in opts
       for (var p in o) {
         opts[p] = o[p];
@@ -750,6 +749,10 @@
     this.loadZoneFile = function (fileName, opts) {
       if (typeof this.zoneFileBasePath === 'undefined') {
         throw new Error('Please define a base path to your zone file directory -- timezoneJS.timezone.zoneFileBasePath.');
+      }
+      //Ignore already loaded zones
+      if (this.loadedZones[fileName]) {
+        return;
       }
       this.loadedZones[fileName] = true;
       return builtInLoadZoneFile(fileName, opts);
