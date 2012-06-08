@@ -27,14 +27,14 @@ describe('timezoneJS.Date', function () {
   });
 
   it('should format 2011-10-28T12:44:22.172 UTC to different formats and tz correctly', function () {
-    var date = new timezoneJS.Date(2011,9,28,12,44,22,172,true);
+    var date = new timezoneJS.Date(2011,9,28,12,44,22,172,'Etc/UTC');
     expect(date.toString('MMM dd yyyy', 'America/New_York')).toEqual('Oct 28 2011');
     expect(date.toString('MMM dd yyyy HH:mm:ss k Z', 'America/New_York')).toEqual('Oct 28 2011 08:44:22 AM EDT');
     expect(date.toString('MMM dd yyyy HH:mm:ss k Z', 'Asia/Shanghai')).toEqual('Oct 28 2011 08:44:22 PM CST');
   });
 
   it('should format 2011-02-28T12:44:22.172 UTC (before daylight) to different formats and tz correctly', function () {
-    var date = new timezoneJS.Date(2011,1,28,12,44,22,172,true);
+    var date = new timezoneJS.Date(2011,1,28,12,44,22,172,'Etc/UTC');
     expect(date.toString('MMM dd yyyy HH:mm:ss k Z', 'America/New_York')).toEqual('Feb 28 2011 07:44:22 AM EST');
     expect(date.toString('MMM dd yyyy HH:mm:ss k Z', 'Indian/Cocos')).toEqual('Feb 28 2011 07:14:22 PM CCT');
   });
@@ -76,8 +76,8 @@ describe('timezoneJS.Date', function () {
       , dt = new timezoneJS.Date();
 
     dtA.setTime(dtA.getTime());
-    expect(dtA.getTime()).toEqual(dtA.getTime());
-    expect(dtA.toISOString()).toEqual(dtA.toISOString());
+    expect(dt.getTime()).toEqual(dtA.getTime());
+    expect(dt.toISOString()).toEqual(dtA.toISOString());
   });
 
   it('should output toGMTString correctly', function () {
@@ -85,8 +85,8 @@ describe('timezoneJS.Date', function () {
       , dt = new timezoneJS.Date();
 
     dtA.setTime(dtA.getTime());
-    expect(dtA.getTime()).toEqual(dtA.getTime());
-    expect(dtA.toGMTString()).toEqual(dtA.toGMTString());
+    expect(dt.getTime()).toEqual(dtA.getTime());
+    expect(dt.toGMTString()).toEqual(dtA.toGMTString());
   });
 
 
@@ -95,8 +95,8 @@ describe('timezoneJS.Date', function () {
       , dt = new timezoneJS.Date();
 
     dtA.setTime(dtA.getTime());
-    expect(dtA.getTime()).toEqual(dtA.getTime());
-    expect(dtA.toJSON()).toEqual(dtA.toJSON());
+    expect(dt.getTime()).toEqual(dtA.getTime());
+    expect(dt.toJSON()).toEqual(dtA.toJSON());
   });
 
 

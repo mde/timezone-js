@@ -268,7 +268,8 @@
       // If timezone is specified, get a clone of the current Date object and modify it
       if (tz) {
         _this = this.clone();
-        _this.setUTCMinutes(_this.getUTCMinutes() - tzInfo.tzOffset);
+        _this.setTimezone(tz);
+        //_this.setUTCMinutes(_this.getUTCMinutes() + _this.getTimezoneOffset() - tzInfo.tzOffset);
       }
       var hours = _this.getHours();
       return result
