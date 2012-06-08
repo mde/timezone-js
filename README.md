@@ -129,14 +129,10 @@ Just to give you an idea of the difference -- merely stripping out the comments 
 The `src` directory has a sample Ruby script that you can use to strip comments from Olson data files.
 
 ## Development
+This project use [Jake](https://github.com/mde/jake) to build. In order to see available tasks, do `jake -T`. The build sequence is:
+
+- `jake test:init`: Download and extract tz files to `lib/tz`.
+- `jake test`: Run `jasmine-node`.
 
 Feel free to fork and modify at your own will.
-The source code is annotated and doc can be generated with `docco`
-
-### Testing
-
-This library requires timezone info from [IANA database](http://www.iana.org/time-zones). Download the data and put timezone files into lib/tz
-
-It also uses jasmine-node as the testing framework. In order to run the tests, do `npm test`
-
-Feel free to add more tests.
+The source code is annotated and doc can be generated with `jake doc`.
