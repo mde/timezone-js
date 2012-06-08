@@ -414,6 +414,7 @@
       return !opts.async
       ? _this.parseZones(_this.transport({ url : url, async : false }))
       : _this.transport({
+        async: true,
         url : url,
         success : function (str) {
           if (_this.parseZones(str) && typeof opts.callback === 'function') {
@@ -722,10 +723,12 @@
     this.rules = {};
 
     this.init = function (o) {
-      var opts = { async: true };
-      var def = this.defaultZoneFile = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
-      ? this.zoneFiles
-      : 'northamerica';
+      var opts = { async: true }
+        , def = this.defaultZoneFile = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
+          ? this.zoneFiles
+          : 'northamerica'
+        , done = 0
+        , callbackFn;
       // Override default with any passed-in opts
       for (var p in o) {
         opts[p] = o[p];
@@ -733,8 +736,12 @@
       if (typeof def === 'string') {
         return this.loadZoneFile(def, opts);
       }
-      if (opts.callback) {
-        throw new Error('Async load with callback is not supported for multiple default zonefiles.');
+      //Wraps callback function in another one that makes
+      //sure all files have been loaded.
+      callbackFn = opts.callback;
+      opts.callback = function () {
+        done++;
+        (done === def.length) && typeof callbackFn === 'function' && callbackFn();
       }
       for (var i = 0; i < def.length; i++) {
         this.loadZoneFile(def[i], opts);
@@ -825,6 +832,7 @@
           }
         }
       }
+      return true;
     };
     // Expose transport mechanism and allow overwrite
     this.transport = _transport;
