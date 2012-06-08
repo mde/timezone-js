@@ -1,4 +1,3 @@
-// timezoneJS Library
 // -----
 // The `timezoneJS.Date` object gives you full-blown timezone support, independent from the timezone set on the end-user's machine running the browser. It uses the Olson zoneinfo files for its timezone data.
 //
@@ -90,7 +89,7 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
-    if ((!fleegix || typeof fleegix.xhr === 'undefined') && typeof $.ajax === 'undefined') {
+    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!$ || typeof $.ajax === 'undefined')) {
       throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
     }
     if (!opts) return;
@@ -269,7 +268,6 @@
       if (tz) {
         _this = this.clone();
         _this.setTimezone(tz);
-        //_this.setUTCMinutes(_this.getUTCMinutes() + _this.getTimezoneOffset() - tzInfo.tzOffset);
       }
       var hours = _this.getHours();
       return result
