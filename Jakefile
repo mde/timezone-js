@@ -46,16 +46,12 @@ task('test', ['test:run'], function () {});
 
 namespace('doc', function () {
   task('generate', ['doc:clobber'], function () {
-    fail('Not implemented');
-    /*
-    var cmd = '../node-jsdoc-toolkit/app/run.js -n -r=100 ' +
-        '-t=../node-jsdoc-toolkit/templates/codeview -d=./doc/ ./lib';
+    var cmd = 'docco src/date.js';
     console.log('Generating docs ...');
     jake.exec([cmd], function () {
       console.log('Done.');
       complete();
     });
-    */
   }, {async: true});
 
   task('clobber', function () {
