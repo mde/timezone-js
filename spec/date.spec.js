@@ -7,20 +7,20 @@ describe('timezoneJS.Date', function () {
     expect(date.toString()).toMatch(/[\d]{4}(-[\d]{2}){2} ([\d]{2}:){2}[\d]{2}/);
   });
 
-  it('should format string correctly in toString', function () {
+  it('should format string correctly in toISOString', function () {
     var date = new timezoneJS.Date();
     expect(date.toISOString()).toMatch(/[\d]{4}(-[\d]{2}){2}T([\d]{2}:){2}[\d]{2}.[\d]{3}/);
   });
 
   it('should get date correctly from UTC (2011-10-28T12:44:22.172000000)', function () {
-    var date = new timezoneJS.Date(2011,9,28,12,44,22,172,true);
-    expect(date.getTime()).toEqual(1319805862000);
+    var date = new timezoneJS.Date(2011,9,28,12,44,22,172,'Etc/UTC');
+    expect(date.getTime()).toEqual(1319805862172);
     expect(date.toString()).toEqual('2011-10-28 12:44:22');
     expect(date.toString('yyyy-MM-dd')).toEqual('2011-10-28');
   });
 
   it('should format 2011-10-28T12:44:22.172 UTC to different formats correctly', function () {
-    var date = new timezoneJS.Date(2011,9,28,12,44,22,172,true);
+    var date = new timezoneJS.Date(2011,9,28,12,44,22,172,'Etc/UTC');
     expect(date.toString('MMM dd yyyy')).toEqual('Oct 28 2011');
     expect(date.toString('MMM dd yyyy HH:mm:ss k')).toEqual('Oct 28 2011 12:44:22 PM');
     expect(date.toString('MMM dd yyyy HH:mm:ss k Z')).toEqual('Oct 28 2011 12:44:22 PM UTC');
@@ -40,10 +40,10 @@ describe('timezoneJS.Date', function () {
   });
 
   it('should convert dates from UTC to a timezone correctly', function () {
-     var date = new timezoneJS.Date(2011,1,28,12,44,22,172,true);
+     var date = new timezoneJS.Date(2011,1,28,12,44,22,172,'Etc/UTC');
      date.setTimezone('America/Los_Angeles');
      expect(date.toString('MMM dd yyyy HH:mm:ss k Z')).toEqual('Feb 28 2011 04:44:22 AM PST');
-     expect(date.getTime()).toEqual(1298897062000);
+     expect(date.getTime()).toEqual(1298897062172);
      expect(date.getHours()).toEqual(4);
   });
 
@@ -114,6 +114,21 @@ describe('timezoneJS.Date', function () {
     expect(dt.getTime()).toEqual(dtA.getTime());
     expect(dt.toJSON()).toEqual(dtA.toJSON());
   });
+
+  it('should take in millis and tz as constructor', function () {
+    var dtA = new Date(0)
+      , dt = new timezoneJS.Date(dtA.getTime(), 'Asia/Bangkok');
+
+    expect(dt.getTime()).toEqual(-7 * 3600 * 1000);
+  });
+
+  it('should take in Date object as constructor', function () {
+    var dtA = new Date(0)
+      , dt = new timezoneJS.Date(dtA, 'Asia/Bangkok');
+
+    expect(dt.getTime()).toEqual(-7 * 3600 * 1000);
+  });
+
 
   it('should be able to set hours', function () {
     var dtA = new Date(0)

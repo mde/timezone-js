@@ -121,55 +121,51 @@
     , t = null
     , dt = null
     , tz = null
+    , arr = []
     , utc = false;
 
-    // If 1st argument is an array, we can use it as a list of arguments itself
+    //We support several different constructors, including all the ones from `Date` object
+    // with a timezone string at the end.
+    //
+    //- `[tz]`: Returns object with time in `tz` specified.
+    //
+    // - `utcMillis`, `[tz]`: Return object with UTC time = `utcMillis`, in `tz`.
+    //
+    // - `Date`, `[tz]`: Returns object with UTC time = `Date.getTime()`, in `tz`.
+    //
+    // - `year, month, [date,] [hours,] [minutes,] [seconds,] [millis,] [tz]: Same as `Date` object
+    // with tz.
+    //
+    // - `Array`: Can be any combo of the above.
+    //
+    //If 1st argument is an array, we can use it as a list of arguments itself
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
       args = args[0];
     }
-    // No args -- create a floating date based on the current local offset
-    if (!args.length) {
-      dt = new Date();
+    if (typeof args[args.length - 1] === 'string') {
+      tz = args.pop();
     }
-    // Date string or timestamp -- assumes floating
-    else if (args.length === 1) {
-      dt = new Date(args[0]);
-    }
-    // year, month, [date,] [hours,] [minutes,] [seconds,] [milliseconds,] [tzId,] [utc]
-    else {
-      t = args[args.length - 1];
-      // Last arg is utc, then the next to last would be timezone
-      if (typeof t === 'boolean') {
-        utc = args.pop();
-        tz = args.pop();
-      }
-      // Last arg is tzId
-      else if (typeof t === 'string') {
-        tz = args.pop();
-        utc = (tz === 'Etc/UTC' || tz === 'Etc/GMT');
-      }
-
-      // Date string (e.g., '12/27/2006')
-      t = args[args.length - 1];
-      if (typeof t === 'string') {
+    switch (args.length) {
+      case 0:
+        dt = new Date();
+        break;
+      case 1:
         dt = new Date(args[0]);
-      }
-      // Date part numbers
-      else {
-        var a = [];
-        for (var i = 0; i < 8; i++) {
-          a[i] = args[i] || 0;
+        break;
+      default:
+        for (var i = 0; i < 7; i++) {
+          arr[i] = args[i] || 0;
         }
-        dt = new Date(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
-      }
+        dt = new Date(arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]);
+        break;
     }
-      
+
     this._extractTimeArray = function () {
       return [this.year, this.month, this.date, this.hours, this.minutes, this.seconds, this.milliseconds, this.timezone];
-    };          
+    };
     this._useCache = false;
     this._tzInfo = {};
-    this._tzAbbr = '';    
+    this._tzAbbr = '';
     this._day = 0;
     this.year = 0;
     this.month = 0;
@@ -179,8 +175,12 @@
     this.seconds = 0;
     this.milliseconds = 0;
     this.timezone = tz || null;
-    this.utc = utc || false;
-    this.setFromDateObjProxy(dt);
+    this.utc = tz === 'Etc/UTC' || tz === 'Etc/GMT';
+    //Tricky part:
+    // For the cases where there are 1/2 arguments: `timezoneJS.Date(millis, [tz])` and `timezoneJS.Date(Date, [tz])`. The
+    // Date `dt` created should be in UTC. Thus the way I detect such cases is to determine if `arr` is not populated & `tz`
+    // is specified. Because if `tz` is not specified, `dt` can be in local time.
+    this.setFromDateObjProxy(dt, !arr.length && tz);
   };
 
   // Implements most of the native Date object
@@ -349,13 +349,13 @@
     },
     setTimezone: function (tz) {
       var previousOffset = this.getTimezoneInfo().tzOffset;
-        
-      this.utc = tz === 'Etc/UTC' || tz === 'Etc/GMT';      
+
+      this.utc = tz === 'Etc/UTC' || tz === 'Etc/GMT';
       this.timezone = tz;
-      this._useCache = false;      
-      
+      this._useCache = false;
+
       // Create a new time that offsets by the delta of the two timezones
-      _this = this.clone();      
+      var _this = this.clone();
       _this.setUTCMinutes(_this.getUTCMinutes() - this.getTimezoneInfo().tzOffset + previousOffset);
       this.setFromDateObjProxy(_this, this.utc);
     },
@@ -383,8 +383,7 @@
       return jDt;
     },
     getLocalOffset: function () {
-      var dt = this;
-      var d = new Date(dt.getYear(), dt.getMonth(), dt.getDate(), dt.getHours(), dt.getMinutes(), dt.getSeconds());
+      var d = new Date(Date.UTC.apply(root, this._extractTimeArray()));
       return d.getTimezoneOffset();
     }
   };
