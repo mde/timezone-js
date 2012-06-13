@@ -11,6 +11,7 @@
   "name": "timezone-js",
   "description": "JavaScript timezone library based on Olson timezone data",
   "version": "0.4.2",
+  "main": "src/date.js",
   "homepage": "https://github.com/mde/timezone-js",
   "repository": {
     "type": "git",
