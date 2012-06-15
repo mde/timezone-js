@@ -130,19 +130,23 @@ describe('timezoneJS.Date', function () {
   });
 
   it('should take in String and Asia/Bangkok as constructor', function () {
-    var dtA = new Date(0)
-      , dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Asia/Bangkok');
+    var dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Asia/Bangkok');
 
     expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T03:00:00.000');
   });
 
   it('should take in String and Etc/UTC as constructor', function () {
-    var dtA = new Date(0)
-      , dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Etc/UTC');
+    var dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Etc/UTC');
 
     expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T10:00:00.000');
   });
 
+  it('should take in String as constructor', function () {
+    var dtA = new Date()
+      , dt = new timezoneJS.Date(dtA.toJSON());
+
+    expect(dt.toJSON()).toEqual(dtA.toJSON());
+  });
 
 
   it('should be able to set hours', function () {

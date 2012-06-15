@@ -142,7 +142,7 @@
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
       args = args[0];
     }
-    if (typeof args[args.length - 1] === 'string') {
+    if (typeof args[args.length - 1] === 'string' && /[a-zA-Z]+\/[a-zA-Z_]+/gi.test(args[args.length - 1])) {
       tz = args.pop();
     }
     switch (args.length) {
