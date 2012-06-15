@@ -129,13 +129,38 @@ describe('timezoneJS.Date', function () {
     expect(dt.getTime()).toEqual(-7 * 3600 * 1000);
   });
 
+  it('should take in String and Asia/Bangkok as constructor', function () {
+    var dtA = new Date(0)
+      , dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Asia/Bangkok');
+
+    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T03:00:00.000');
+  });
+
+  it('should take in String and Etc/UTC as constructor', function () {
+    var dtA = new Date(0)
+      , dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Etc/UTC');
+
+    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T10:00:00.000');
+  });
+
+
 
   it('should be able to set hours', function () {
     var dtA = new Date(0)
-      , dt = new timezoneJS.Date(dtA);
+      , dt = new timezoneJS.Date(0, 'Etc/UTC');
 
     dt.setHours(6);
     expect(dt.getHours()).toEqual(6);
+  });
+
+  it('should be able to clone itself', function () {
+    var dt = new timezoneJS.Date(0, 'America/Chicago')
+      , dtA = dt.clone();
+
+    expect(dt.getTime()).toEqual(dtA.getTime());
+    expect(dt.toString()).toEqual(dtA.toString());
+    expect(dt.getTimezoneOffset()).toEqual(dtA.getTimezoneOffset());
+    expect(dt.getTimezoneAbbreviation()).toEqual(dtA.getTimezoneAbbreviation());
   });
 
 
