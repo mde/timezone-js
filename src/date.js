@@ -165,7 +165,6 @@
     };
     this._useCache = false;
     this._tzInfo = {};
-    this._tzAbbr = '';
     this._day = 0;
     this.year = 0;
     this.month = 0;
@@ -325,6 +324,7 @@
       this.seconds = fromUTC ? dt.getUTCSeconds() : dt.getSeconds();
       this.milliseconds = fromUTC ? dt.getUTCMilliseconds() : dt.getMilliseconds();
       this._day = fromUTC ? dt.getUTCDay() : dt.getDay();
+      this._dateProxy = dt;
       this._useCache = false;
     },
     getUTCDateProxy: function () {
@@ -334,7 +334,7 @@
     },
     setAttribute: function (unit, n) {
       if (isNaN(n)) { throw new Error('Units must be a number.'); }
-      var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
+      var dt = new Date(this.getUTCDateProxy());
       var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
       dt['set' + meth](n);
       this.setFromDateObjProxy(dt);
@@ -383,8 +383,8 @@
       return jDt;
     },
     getLocalOffset: function () {
-      var d = new Date(Date.UTC.apply(root, this._extractTimeArray()));
-      return d.getTimezoneOffset();
+      var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
+      return dt.getTimezoneOffset();
     }
   };
 
@@ -409,7 +409,7 @@
     function invalidTZError(t) { throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
-      return !opts.async
+      return !opts || !opts.async
       ? _this.parseZones(_this.transport({ url : url, async : false }))
       : _this.transport({
         async: true,
@@ -440,7 +440,7 @@
       // Backward-compat file hasn't loaded yet, try looking in there
       if (!_this.loadedZones.backward) {
         // This is for obvious legacy zones (e.g., Iceland) that don't even have a prefix like "America/" that look like normal zones
-        _this.loadZoneFile('backward', true);
+        _this.loadZoneFile('backward');
         return getRegionForTimezone(tz);
       }
       invalidTZError(tz);
@@ -470,7 +470,7 @@
            * for (e.g., America => 'northamerica'), but in reality it's a
            * legacy zone we need the backward file for
            */
-          _this.loadZoneFile('backward', true);
+          _this.loadZoneFile('backward');
           return getZone(dt, tz);
         }
         invalidTZError(t);
@@ -844,7 +844,7 @@
         }
         if (!this.loadedZones[zoneFile]) {
           // Get the file and parse it -- use synchronous XHR
-          this.loadZoneFile(zoneFile, true);
+          this.loadZoneFile(zoneFile);
         }
       }
       var zone = getZone(dt, tz);

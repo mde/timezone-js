@@ -157,6 +157,24 @@ describe('timezoneJS.Date', function () {
     expect(dt.getHours()).toEqual(6);
   });
 
+  it('should be able to set date without altering others', function () {
+    var dt = new timezoneJS.Date('America/New_York');
+
+    var hours = dt.getHours();
+    dt.setDate(1);
+    expect(dt.getHours()).toEqual(hours);
+  });
+
+  //Will have to fix this. Disabled for now
+  /*
+  it('should adjust daylight saving correctly', function () {
+    var dt1 = new timezoneJS.Date('2012-03-11 02:00:00', 'America/New_York');
+    expect(dt1.getTimezoneAbbreviation()).toEqual('EDT');
+    dt1 = new timezoneJS.Date('2012-03-11 01:59:59', 'America/New_York');
+    expect(dt1.getTimezoneAbbreviation()).toEqual('EST');
+  });
+ */
+
   it('should be able to clone itself', function () {
     var dt = new timezoneJS.Date(0, 'America/Chicago')
       , dtA = dt.clone();
