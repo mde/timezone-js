@@ -74,7 +74,7 @@
       s = '0' + s;
     }
     return s;
-  }
+  };
 
   // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
   //
@@ -118,11 +118,10 @@
   // Constructor, which is similar to that of the native Date object itself
   timezoneJS.Date = function () {
     var args = Array.prototype.slice.apply(arguments)
-    , t = null
     , dt = null
     , tz = null
-    , arr = []
-    , utc = false;
+    , arr = [];
+
 
     //We support several different constructors, including all the ones from `Date` object
     // with a timezone string at the end.
@@ -142,7 +141,7 @@
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
       args = args[0];
     }
-    if (typeof args[args.length - 1] === 'string' && /[a-zA-Z]+\/[a-zA-Z_]+/gi.test(args[args.length - 1])) {
+    if (typeof args[args.length - 1] === 'string' && /^[a-zA-Z]+\//gi.test(args[args.length - 1])) {
       tz = args.pop();
     }
     switch (args.length) {
@@ -378,8 +377,8 @@
         m += 12;
       }
       a = Math.floor(y / 100);
-      var b = 2 - a + Math.floor(a / 4);
-      jDt = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524;
+      var b = 2 - a + Math.floor(a / 4)
+        , jDt = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524;
       return jDt;
     },
     getLocalOffset: function () {
@@ -390,11 +389,11 @@
 
 
   timezoneJS.timezone = new function () {
-    var _this = this;
-    var monthMap = {};
-    var dayMap = {};
-    var regionMap = {'EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'};
-    var regionExceptions = {'Etc/GMT':'etcetera','Etc/UTC':'etcetera','Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica'};
+    var _this = this
+      , monthMap = {}
+      , dayMap = {}
+      , regionMap = {'EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
+      , regionExceptions = {'Etc/GMT':'etcetera','Etc/UTC':'etcetera','Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica'};
 
     //`{ 'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3,'may': 4, 'jun': 5, 'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11 }`
     for (var i = 0; i < Months.length; i++) {
@@ -402,7 +401,7 @@
     }
 
     //`{'sun': 0,'mon' :1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 }`
-    for (var i = 0; i < Days.length; i++) {
+    for (i = 0; i < Days.length; i++) {
       dayMap[Days[i].substr(0,3).toLowerCase()] = i;
     }
 
@@ -426,8 +425,9 @@
       });
     }
     function getRegionForTimezone(tz) {
-      var exc = regionExceptions[tz];
-      var ret;
+      var exc = regionExceptions[tz]
+        , reg
+        , ret;
       if (exc) return exc;
       reg = tz.split('/')[0];
       ret = regionMap[reg];
@@ -485,18 +485,17 @@
           mon = monthMap[z[4].substr(0, 3).toLowerCase()];
           dat = parseInt(z[5], 10);
         }
-        var t = z[6] ? z[6] : '23:59:59';
-        t = parseTimeString(t);
+        t = parseTimeString(z[6] ? z[6] : '23:59:59');
         var d = Date.UTC(yea, mon, dat, t[1], t[2], t[3]);
         if (dt.getTime() < d) { break; }
       }
-      if (i === zoneList.length) { throw new Error('No Zone found for "' + timezone + '" on ' + dt); }
+      if (i === zoneList.length) { throw new Error('No Zone found for "' + tz + '" on ' + dt); }
       return zoneList[i];
 
     }
     function getBasicOffset(z) {
-      var off = parseTimeString(z[0]);
-      var adj = z[0].indexOf('-') === 0 ? -1 : 1
+      var off = parseTimeString(z[0])
+        , adj = z[0].indexOf('-') === 0 ? -1 : 1;
       off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
       return -off/60/1000;
     }
@@ -533,7 +532,7 @@
         offset *= 60 * 1000; // to millis
 
         return new Date(date.getTime() + offset);
-      }
+      };
 
       // Step 1:  Find applicable rules for this year.
       // Step 2:  Sort the rules by effective date.
@@ -547,9 +546,9 @@
 
       var convertRuleToExactDateAndTime = function (yearAndRule, prevRule) {
         var year = yearAndRule[0]
-        , rule = yearAndRule[1]
-        , months = {} // Assume that the rule applies to the year of the given date.
-        , days = {};
+          , rule = yearAndRule[1]
+          , months = {} // Assume that the rule applies to the year of the given date.
+          , days = {};
 
         /**
          * { "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }
@@ -561,7 +560,7 @@
         /**
          * { "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6 }
          */
-        for (var i = 0; i < Days.length; i++) {
+        for (i = 0; i < Days.length; i++) {
           days[Days[i].substr(0, 3).toLowerCase()] = i;
         }
 
@@ -573,7 +572,7 @@
         }
         else { // Let's hunt for the date.
           var targetDay
-          , operator;
+            , operator;
 
           if (rule[4].substr(0, 4) === "last") { // Example: lastThu
             // Start at the last day of the month and work backward.
@@ -602,7 +601,7 @@
           effectiveDate = convertDateToUTC(effectiveDate, hms[4], prevRule);
         }
         return effectiveDate;
-      }
+      };
 
       var findApplicableRules = function (year, ruleset) {
         var applicableRules = [];
@@ -623,7 +622,7 @@
              }
         }
         return applicableRules;
-      }
+      };
 
       var compareDates = function (a, b, prev) {
         if (a.constructor !== Date) {
@@ -639,7 +638,7 @@
         a = Number(a);
         b = Number(b);
         return a - b;
-      }
+      };
 
       var year = date.getUTCFullYear();
       var applicableRules;
@@ -677,7 +676,7 @@
       var adj = save.indexOf('-') === 0 ? -1 : 1;
       var ret = (adj*(((t[1] *60 + t[2]) * 60 + t[3]) * 1000));
       ret = ret/60/1000;
-      ret -= off
+      ret -= off;
       ret = -Math.ceil(ret);
       return ret;
     }
@@ -740,7 +739,7 @@
       opts.callback = function () {
         done++;
         (done === def.length) && typeof callbackFn === 'function' && callbackFn();
-      }
+      };
       for (var i = 0; i < def.length; i++) {
         this.loadZoneFile(def[i], opts);
       }
@@ -771,7 +770,7 @@
         for (var r in data.rules) {
           _this.rules[r] = data.rules[r];
         }
-      }
+      };
       return sync
       ? processData(_this.transport({ url : url, async : false }))
       : _this.transport({ url : url, success : processData });
@@ -787,17 +786,16 @@
     };
     this.getAllZones = function () {
       var arr = [];
-      for (z in this.zones) { arr.push(z); }
+      for (var z in this.zones) { arr.push(z); }
       return arr.sort();
     };
     this.parseZones = function (str) {
-      var s = ''
-      , lines = str.split('\n')
-      , arr = []
-      , chunk = ''
-      , l //Declare l here to avoid accidental global var declaration
-      , zone = null
-      , rule = null;
+      var lines = str.split('\n')
+        , arr = []
+        , chunk = ''
+        , l //Declare l here to avoid accidental global var declaration
+        , zone = null
+        , rule = null;
       for (var i = 0; i < lines.length; i++) {
         l = lines[i];
         if (l.match(/^\s/)) {
@@ -811,13 +809,17 @@
           switch (chunk) {
             case 'Zone':
               zone = arr.shift();
-              if (!_this.zones[zone]) { _this.zones[zone] = [] }
-                _this.zones[zone].push(arr);
+              if (!_this.zones[zone]) {
+                _this.zones[zone] = [];
+              }
+              _this.zones[zone].push(arr);
               break;
             case 'Rule':
               rule = arr.shift();
-              if (!_this.rules[rule]) { _this.rules[rule] = [] }
-                _this.rules[rule].push(arr);
+              if (!_this.rules[rule]) {
+                _this.rules[rule] = [];
+              }
+              _this.rules[rule].push(arr);
               break;
             case 'Link':
               // No zones for these should already exist
@@ -857,5 +859,5 @@
       var abbr = getAbbreviation(zone, rule);
       return { tzOffset: off, tzAbbr: abbr };
     };
-  }
+  };
 }).call(this);

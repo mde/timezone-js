@@ -132,13 +132,17 @@ describe('timezoneJS.Date', function () {
   it('should take in String and Asia/Bangkok as constructor', function () {
     var dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Asia/Bangkok');
 
+    expect(dt.toString()).toEqual('2012-01-01 15:00:00');
     expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T03:00:00.000');
+    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS')).toEqual('2012-01-01T15:00:00.000');
   });
 
   it('should take in String and Etc/UTC as constructor', function () {
     var dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Etc/UTC');
 
     expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T10:00:00.000');
+    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS')).toEqual('2012-01-01T15:00:00.000');
+
   });
 
   it('should take in String as constructor', function () {
@@ -165,15 +169,14 @@ describe('timezoneJS.Date', function () {
     expect(dt.getHours()).toEqual(hours);
   });
 
-  //Will have to fix this. Disabled for now
-  /*
   it('should adjust daylight saving correctly', function () {
-    var dt1 = new timezoneJS.Date('2012-03-11 02:00:00', 'America/New_York');
-    expect(dt1.getTimezoneAbbreviation()).toEqual('EDT');
-    dt1 = new timezoneJS.Date('2012-03-11 01:59:59', 'America/New_York');
-    expect(dt1.getTimezoneAbbreviation()).toEqual('EST');
+    var dt1 = new timezoneJS.Date('2012-03-11T03:00:00', 'America/Chicago');
+    expect(dt1.getTimezoneAbbreviation()).toEqual('CDT');
+    var dt2 = new timezoneJS.Date('2012-03-11T01:59:59', 'America/Chicago');
+
+    expect(dt2.getTimezoneAbbreviation()).toEqual('CST');
+    expect(dt2.getTimezoneOffset()).toEqual(360);
   });
- */
 
   it('should be able to clone itself', function () {
     var dt = new timezoneJS.Date(0, 'America/Chicago')
