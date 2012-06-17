@@ -18,13 +18,14 @@
     "url": "git://github.com/mde/timezone-js.git"
   },
   "scripts": {
-    "test": "jasmine-node spec"
+    "test": "jake test:init; jake test"
   },
   "engines": {
     "node": "~0.6.0"
   },
   "dependencies": {},
   "devDependencies": {
+    "jake": "latest",
     "jasmine-node": "latest"
   }
 }
