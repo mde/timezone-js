@@ -162,12 +162,26 @@ describe('timezoneJS.Date', function () {
   });
 
   it('should be able to set date without altering others', function () {
-    var dt = new timezoneJS.Date('America/New_York');
+    var dt = new timezoneJS.Date(2012, 2, 2, 5, 0, 0, 0, 'America/Los_Angeles')
+      , dt2 = new timezoneJS.Date(2011, 4, 15, 23, 0, 0, 0, 'Asia/Bangkok');
 
     var hours = dt.getHours();
     dt.setDate(1);
     expect(dt.getHours()).toEqual(hours);
+
+    hours = dt2.getHours();
+    dt2.setDate(2);
+    expect(dt2.getHours()).toEqual(hours);
   });
+
+  it('should be able to set UTC date without altering others', function () {
+    var dt = new timezoneJS.Date(2012, 2, 2, 5, 0, 0, 0, 'America/Los_Angeles');
+
+    var hours = dt.getUTCHours();
+    dt.setUTCDate(1);
+    expect(dt.getUTCHours()).toEqual(hours);
+  });
+
 
   it('should adjust daylight saving correctly', function () {
     var dt1 = new timezoneJS.Date('2012-03-11T03:00:00', 'America/Chicago');
