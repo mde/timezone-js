@@ -39,6 +39,8 @@ namespace('test', function () {
 
   }, {async: true});
 
+  task('cli', ['init', 'run']);
+
 });
 
 desc('Runs the tests.');

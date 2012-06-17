@@ -18,7 +18,7 @@
     "url": "git://github.com/mde/timezone-js.git"
   },
   "scripts": {
-    "test": "jake test:init; jake test"
+    "test": "./node_modules/jake/bin/cli.js test:cli"
   },
   "engines": {
     "node": "~0.6.0"
