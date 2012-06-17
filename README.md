@@ -27,7 +27,7 @@ Put your directory of Olson files somewhere under your Web server root, and poin
 	timezoneJS.timezone.zoneFileBasePath = '/tz';
 	timezoneJS.timezone.init();
 
-If you use `timezoneJS.Date` with `Fleegix.js`, there's nothing else you need to do -- timezones for North America will be loaded and parsed on initial page load, and others will be downloaded and parsed on-the-fly, as needed. If you want to use this code with some other JavaScript toolkit, you'll need to define your own transport method in the `loadZoneFile` method.
+If you use `timezoneJS.Date` with `Fleegix.js`, there's nothing else you need to do -- timezones for North America will be loaded and parsed on initial page load, and others will be downloaded and parsed on-the-fly, as needed. If you want to use this code with some other JavaScript toolkit, you'll need to overwrite your own transport method by setting `timezoneJS.timezone.transport = someFunction` method. Take a look at `test-utils.js` in `spec` for an example.
 
 ## Usage
 
@@ -96,11 +96,18 @@ You can change this behavior by changing the value of `timezoneJS.timezone.loadi
 
 If you know beforehand what specific cities your users are going to be using, you can reduce load times specifically by creating a pre-parsed JSON data file containing only the timezone info for those specific cities.
 
-The src directory contains a command-line JavaScript script that can generate this kind of JSON data. **Note that this script requires the Rhino (Java) JavaScript engine to run, since the stock SpiderMonkey (C) engine doesn't come with file I/O capabilities.**
+The src directory contains 2 command-line JavaScript scripts that can generate this kind of JSON data:
+
+- `node-preparse.js`: Uses Node to preparse and populate data.
+- `preparse.js`: This script requires the Rhino (Java) JavaScript engine to run, since the stock SpiderMonkey (C) engine doesn't come with file I/O capabilities.
 
 Use the script like this:
 
 	rhino preparse.js zoneFileDirectory [exemplarCities] > outputfile.json
+
+Or:
+
+	node node-preparse.js zoneFileDirectory [exemplarCities] > outputfile.json
 
 The first parameter is the directory where the script can find the Olson zoneinfo files. The second (optional) param should be a comma-delimited list of timzeone cities to create the JSON data for. If that parameter isn't passed, the script will generate the JSON data for all the files.
 
@@ -109,14 +116,21 @@ The first parameter is the directory where the script can find the Olson zoneinf
 	> major_cities.json
 
 	rhino preparse.js olson_files > all_cities.json
+Or:
 
+	node node-preparse.js olson_files \
+	"Asia/Tokyo, America/New_York, Europe/London" \
+	> major_cities.json
+
+	node node-preparse.js olson_files > all_cities.json
+	
 Once you have your file of JSON data, set your loading scheme to `timezoneJS.timezone.loadingSchemes.MANUAL_LOAD`, and load the JSON data with `loadZoneJSONData`, like this:
 
 	var _tz = timezoneJS.timezone;
 	_tz.loadingScheme = _tz.loadingSchemes.MANUAL_LOAD;
 	_tz.loadZoneJSONData('/major_cities.json', true);
 
-Since the limited set of data will be much smaller than any of the zoneinfo files, and the JSON data is deserialized with `eval`, this method is significantly faster than the default setup. However, it only works if you know beforehand exactly what timezones you want to use.
+Since the limited set of data will be much smaller than any of the zoneinfo files, and the JSON data is deserialized with `eval` or `JSON.parse`, this method is significantly faster than the default setup. However, it only works if you know beforehand exactly what timezones you want to use.
 
 ## Compressing
 
