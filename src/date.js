@@ -382,8 +382,7 @@
       return jDt;
     },
     getLocalOffset: function () {
-      var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
-      return dt.getTimezoneOffset();
+      return this._dateProxy.getTimezoneOffset();
     }
   };
 
@@ -464,12 +463,10 @@
       if (!zoneList) {
         // Backward-compat file hasn't loaded yet, try looking in there
         if (!_this.loadedZones.backward) {
-          /**
-           * This is for backward entries like "America/Fort_Wayne" that
-           * getRegionForTimezone *thinks* it has a region file and zone
-           * for (e.g., America => 'northamerica'), but in reality it's a
-           * legacy zone we need the backward file for
-           */
+          //This is for backward entries like "America/Fort_Wayne" that
+          // getRegionForTimezone *thinks* it has a region file and zone
+          // for (e.g., America => 'northamerica'), but in reality it's a
+          // legacy zone we need the backward file for.
           _this.loadZoneFile('backward');
           return getZone(dt, tz);
         }
@@ -500,23 +497,22 @@
       return -off/60/1000;
     }
 
-    /**
-     * if isUTC is true, date is given in UTC, otherwise it's given
-     * in local time (ie. date.getUTC*() returns local time components)
-     */
+    //if isUTC is true, date is given in UTC, otherwise it's given
+    // in local time (ie. date.getUTC*() returns local time components)
     function getRule(date, zone, isUTC) {
       var ruleset = zone[1];
       var basicOffset = getBasicOffset(zone);
 
-      /**
-       * Convert a date to UTC. Depending on the 'type' parameter, the date
-       * parameter may be:
-       * 'u', 'g', 'z': already UTC (no adjustment)
-       * 's': standard time (adjust for time zone offset but not for DST)
-       * 'w': wall clock time (adjust for both time zone and DST offset)
-       *
-       * DST adjustment is done using the rule given as third argument
-       */
+      //Convert a date to UTC. Depending on the 'type' parameter, the date
+      // parameter may be:
+      //
+      // - `u`, `g`, `z`: already UTC (no adjustment).
+      //
+      // - `s`: standard time (adjust for time zone offset but not for DST)
+      //
+      // - `w`: wall clock time (adjust for both time zone and DST offset).
+      //
+      // DST adjustment is done using the rule given as third argument.
       var convertDateToUTC = function (date, type, rule) {
         var offset = 0;
 
@@ -534,32 +530,32 @@
         return new Date(date.getTime() + offset);
       };
 
-      // Step 1:  Find applicable rules for this year.
-      // Step 2:  Sort the rules by effective date.
-      // Step 3:  Check requested date to see if a rule has yet taken effect this year.  If not,
-      // Step 4:  Get the rules for the previous year.  If there isn't an applicable rule for last year, then
-      //      there probably is no current time offset since they seem to explicitly turn off the offset
-      //      when someone stops observing DST.
-      //      FIXME if this is not the case and we'll walk all the way back (ugh).
-      // Step 5:  Sort the rules by effective date.
-      // Step 6:  Apply the most recent rule before the current time.
-
+      //Step 1:  Find applicable rules for this year.
+      //
+      //Step 2:  Sort the rules by effective date.
+      //
+      //Step 3:  Check requested date to see if a rule has yet taken effect this year.  If not,
+      //
+      //Step 4:  Get the rules for the previous year.  If there isn't an applicable rule for last year, then
+      // there probably is no current time offset since they seem to explicitly turn off the offset
+      // when someone stops observing DST.
+      //
+      // FIXME if this is not the case and we'll walk all the way back (ugh).
+      //
+      //Step 5:  Sort the rules by effective date.
+      //Step 6:  Apply the most recent rule before the current time.
       var convertRuleToExactDateAndTime = function (yearAndRule, prevRule) {
         var year = yearAndRule[0]
           , rule = yearAndRule[1]
           , months = {} // Assume that the rule applies to the year of the given date.
           , days = {};
 
-        /**
-         * { "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }
-         */
+        //{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }
         for (var i = 0; i < Months.length; i++) {
           months[Months[i].substr(0, 3)] = i;
         }
 
-        /**
-         * { "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6 }
-         */
+        //{ "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6 }
         for (i = 0; i < Days.length; i++) {
           days[Days[i].substr(0, 3).toLowerCase()] = i;
         }
@@ -567,36 +563,41 @@
         var hms = parseTimeString(rule[5]);
         var effectiveDate;
 
-        if (!isNaN(rule[4])) { // If we have a specific date, use that!
+        //If we have a specific date, use that!
+        if (!isNaN(rule[4])) {
           effectiveDate = new Date(Date.UTC(year, months[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
         }
-        else { // Let's hunt for the date.
+        //Let's hunt for the date.
+        else {
           var targetDay
             , operator;
-
-          if (rule[4].substr(0, 4) === "last") { // Example: lastThu
+          //Example: `lastThu`
+          if (rule[4].substr(0, 4) === "last") {
             // Start at the last day of the month and work backward.
             effectiveDate = new Date(Date.UTC(year, months[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
             targetDay = days[rule[4].substr(4, 3).toLowerCase()];
             operator = "<=";
           }
-          else { // Example: Sun>=15
-            // Start at the specified date.
+          //Example: `Sun>=15`
+          else {
+            //Start at the specified date.
             effectiveDate = new Date(Date.UTC(year, months[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
             targetDay = days[rule[4].substr(0, 3).toLowerCase()];
             operator = rule[4].substr(3, 2);
           }
           var ourDay = effectiveDate.getUTCDay();
-          if (operator === ">=") { // Go forwards.
+          //Go forwards.
+          if (operator === ">=") {
             effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay + ((targetDay < ourDay) ? 7 : 0)));
           }
-          else { // Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
+          //Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
+          else {
             effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay - ((targetDay > ourDay) ? 7 : 0)));
           }
         }
 
-        // if previous rule is given, correct for the fact that the starting time of the current
-        // rule may be specified in local time
+        //If previous rule is given, correct for the fact that the starting time of the current
+        // rule may be specified in local time.
         if (prevRule) {
           effectiveDate = convertDateToUTC(effectiveDate, hms[4], prevRule);
         }
@@ -606,18 +607,20 @@
       var findApplicableRules = function (year, ruleset) {
         var applicableRules = [];
         for (var i = 0; ruleset && i < ruleset.length; i++) {
-          if (Number(ruleset[i][0]) <= year && // Exclude future rules.
+          //Exclude future rules.
+          if (Number(ruleset[i][0]) <= year &&
               (
-                Number(ruleset[i][1]) >= year || // Date is in a set range.
-                  (Number(ruleset[i][0]) === year && ruleset[i][1] === "only") ||    // Date is in an "only" year.
-                    ruleset[i][1] === "max"                                                 // We're in a range from the start year to infinity.
+                // Date is in a set range.
+                Number(ruleset[i][1]) >= year ||
+                // Date is in an "only" year.
+                  (Number(ruleset[i][0]) === year && ruleset[i][1] === "only") ||
+                //We're in a range from the start year to infinity.
+                    ruleset[i][1] === "max"
           )
              ) {
-               /**
-                * It's completely okay to have any number of matches here.
-                * Normally we should only see two, but that doesn't preclude other numbers of matches.
-                * These matches are applicable to this year.
-                */
+               //It's completely okay to have any number of matches here.
+               // Normally we should only see two, but that doesn't preclude other numbers of matches.
+               // These matches are applicable to this year.
                applicableRules.push([year, ruleset[i]]);
              }
         }
@@ -645,27 +648,28 @@
 
       applicableRules = findApplicableRules(year, _this.rules[ruleset]);
       applicableRules.push(date);
-      // While sorting, the time zone in which the rule starting time is specified
+      //While sorting, the time zone in which the rule starting time is specified
       // is ignored. This is ok as long as the timespan between two DST changes is
       // larger than the DST offset, which is probably always true.
       // As the given date may indeed be close to a DST change, it may get sorted
       // to a wrong position (off by one), which is corrected below.
       applicableRules.sort(compareDates);
 
-      if (applicableRules.indexOf(date) < 2) { // If there are not enough past DST rules...
+      //If there are not enough past DST rules...
+      if (applicableRules.indexOf(date) < 2) {
         applicableRules = applicableRules.concat(findApplicableRules(year-1, _this.rules[ruleset]));
         applicableRules.sort(compareDates);
       }
 
       var pinpoint = applicableRules.indexOf(date);
       if (pinpoint > 1 && compareDates(date, applicableRules[pinpoint-1], applicableRules[pinpoint-2][1]) < 0) {
-        // the previous rule does not really apply, take the one before that
+        //The previous rule does not really apply, take the one before that.
         return applicableRules[pinpoint - 2][1];
       } else if (pinpoint > 0 && pinpoint < applicableRules.length - 1 && compareDates(date, applicableRules[pinpoint+1], applicableRules[pinpoint-1][1]) > 0) {
-        // the next rule does already apply, take that one
+        //The next rule does already apply, take that one.
         return applicableRules[pinpoint + 1][1];
       } else if (pinpoint === 0) {
-        // no applicable rule found in this and in previous year
+        //No applicable rule found in this and in previous year.
         return null;
       }
       return applicableRules[pinpoint - 1][1];
@@ -686,9 +690,9 @@
       if (base.indexOf('%s') > -1) {
         var repl;
         if (rule) {
-          repl = rule[7]=='-'?'':rule[7];
+          repl = rule[7] === '-' ? '' : rule[7];
         }
-        // FIXME: Right now just falling back to Standard --
+        //FIXME: Right now just falling back to Standard --
         // apparently ought to use the last valid rule,
         // although in practice that always ought to be Standard
         else {
@@ -697,10 +701,10 @@
         res = base.replace('%s', repl);
       }
       else if (base.indexOf('/') > -1) {
-        // chose one of two alternative strings
+        //Chose one of two alternative strings.
         var t = parseTimeString(rule[6]);
-        var isDst = (t[1])||(t[2])||(t[3]);
-        res = base.split("/",2)[isDst?1:0];
+        var isDst = t[1] || t[2] || t[3];
+        res = base.split("/", 2)[isDst ? 1 : 0];
       } else {
         res = base;
       }
@@ -726,7 +730,7 @@
           : 'northamerica'
         , done = 0
         , callbackFn;
-      // Override default with any passed-in opts
+      //Override default with any passed-in opts
       for (var p in o) {
         opts[p] = o[p];
       }
@@ -734,7 +738,7 @@
         return this.loadZoneFile(def, opts);
       }
       //Wraps callback function in another one that makes
-      //sure all files have been loaded.
+      // sure all files have been loaded.
       callbackFn = opts.callback;
       opts.callback = function () {
         done++;
@@ -745,16 +749,14 @@
       }
     };
 
-    /**
-     * Get the zone files via XHR -- if the sync flag
-     * is set to true, it's being called by the lazy-loading
-     * mechanism, so the result needs to be returned inline
-     */
+    //Get the zone files via XHR -- if the sync flag
+    // is set to true, it's being called by the lazy-loading
+    // mechanism, so the result needs to be returned inline.
     this.loadZoneFile = function (fileName, opts) {
       if (typeof this.zoneFileBasePath === 'undefined') {
         throw new Error('Please define a base path to your zone file directory -- timezoneJS.timezone.zoneFileBasePath.');
       }
-      //Ignore already loaded zones
+      //Ignore already loaded zones.
       if (this.loadedZones[fileName]) {
         return;
       }
@@ -793,7 +795,7 @@
       var lines = str.split('\n')
         , arr = []
         , chunk = ''
-        , l //Declare l here to avoid accidental global var declaration
+        , l
         , zone = null
         , rule = null;
       for (var i = 0; i < lines.length; i++) {
@@ -805,7 +807,7 @@
         if (l.length > 3) {
           arr = l.split(/\s+/);
           chunk = arr.shift();
-          // Ignore Leap
+          //Ignore Leap.
           switch (chunk) {
             case 'Zone':
               zone = arr.shift();
@@ -822,11 +824,11 @@
               _this.rules[rule].push(arr);
               break;
             case 'Link':
-              // No zones for these should already exist
+              //No zones for these should already exist.
               if (_this.zones[arr[1]]) {
                 throw new Error('Error with Link ' + arr[1] + '. Cannot create link of a preexisted zone.');
               }
-              // Create the link
+              //Create the link.
               _this.zones[arr[1]] = arr[0];
               break;
           }
@@ -834,24 +836,24 @@
       }
       return true;
     };
-    // Expose transport mechanism and allow overwrite
+    //Expose transport mechanism and allow overwrite.
     this.transport = _transport;
     this.getTzInfo = function (dt, tz, isUTC) {
-      // Lazy-load any zones not yet loaded
+      //Lazy-load any zones not yet loaded.
       if (this.loadingScheme === this.loadingSchemes.LAZY_LOAD) {
-        // Get the correct region for the zone
+        //Get the correct region for the zone.
         var zoneFile = getRegionForTimezone(tz);
         if (!zoneFile) {
           throw new Error('Not a valid timezone ID.');
         }
         if (!this.loadedZones[zoneFile]) {
-          // Get the file and parse it -- use synchronous XHR
+          //Get the file and parse it -- use synchronous XHR.
           this.loadZoneFile(zoneFile);
         }
       }
       var zone = getZone(dt, tz);
       var off = getBasicOffset(zone);
-      // See if the offset needs adjustment
+      //See if the offset needs adjustment.
       var rule = getRule(dt, zone, isUTC);
       if (rule) {
         off = getAdjustedOffset(off, rule);
