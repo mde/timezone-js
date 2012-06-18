@@ -1,5 +1,7 @@
 # TimezoneJS.Date
 
+[![Build Status](https://secure.travis-ci.org/mde/timezone-js.png)](https://secure.travis-ci.org/mde/timezone-js)
+
 A timezone-enabled, drop-in replacement for the stock JavaScript Date. The `timezoneJS.Date` object is API-compatible with JS Date, with the same getter and setter methods -- it should work fine in any code that works with normal JavaScript Dates.
 
 [Mailing list](http://groups.google.com/group/timezone-js)
