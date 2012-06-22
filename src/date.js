@@ -446,15 +446,14 @@
       invalidTZError(tz);
     }
     function parseTimeString(str) {
-      if (!PARSED_TIME_STRINGS[str]) {
-        var pat = /(\d+)(?::0*(\d*))?(?::0*(\d*))?([wsugz])?$/;
-        var hms = str.match(pat);
-        hms[1] = parseInt(hms[1], 10);
-        hms[2] = hms[2] ? parseInt(hms[2], 10) : 0;
-        hms[3] = hms[3] ? parseInt(hms[3], 10) : 0;
-        PARSED_TIME_STRINGS[str] = hms;        
-      }
-      return PARSED_TIME_STRINGS[str];
+      var pat = /(\d+)(?::0*(\d*))?(?::0*(\d*))?([wsugz])?$/;
+      var hms = str.match(pat);
+      hms[1] = parseInt(hms[1], 10);
+      hms[2] = hms[2] ? parseInt(hms[2], 10) : 0;
+      hms[3] = hms[3] ? parseInt(hms[3], 10) : 0;
+      PARSED_TIME_STRINGS[str] = hms;
+
+      return hms;
     }
     function getZone(dt, tz) {
       var t = tz;
@@ -486,7 +485,8 @@
           mon = SHORT_MONTHS[z[4].substr(0, 3)];
           dat = parseInt(z[5], 10);
         }
-        t = parseTimeString(z[6] ? z[6] : '23:59:59');
+        var string = z[6] ? z[6] : '23:59:59';
+        t = PARSED_TIME_STRINGS[string] || parseTimeString(string);
         var d = Date.UTC(yea, mon, dat, t[1], t[2], t[3]);
         if (dt.getTime() < d) { break; }
       }
@@ -495,7 +495,7 @@
 
     }
     function getBasicOffset(z) {
-      var off = parseTimeString(z[0])
+      var off = PARSED_TIME_STRINGS[z[0]] || parseTimeString(z[0])
         , adj = z[0].indexOf('-') === 0 ? -1 : 1;
       off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
       return -off/60/1000;
@@ -550,10 +550,10 @@
       //Step 6:  Apply the most recent rule before the current time.
       var convertRuleToExactDateAndTime = function (yearAndRule, prevRule) {
         var year = yearAndRule[0]
-          , rule = yearAndRule[1]
+          , rule = yearAndRule[1];
           // Assume that the rule applies to the year of the given date.
 
-        var hms = parseTimeString(rule[5]);
+        var hms = PARSED_TIME_STRINGS[rule[5]] || parseTimeString(rule[5]);
         var effectiveDate;
 
         //If we have a specific date, use that!
@@ -669,7 +669,7 @@
     }
     function getAdjustedOffset(off, rule) {
       var save = rule[6];
-      var t = parseTimeString(save);
+      var t = PARSED_TIME_STRINGS[save] || parseTimeString(save);
       var adj = save.indexOf('-') === 0 ? -1 : 1;
       var ret = (adj*(((t[1] *60 + t[2]) * 60 + t[3]) * 1000));
       ret = ret/60/1000;
@@ -695,7 +695,7 @@
       }
       else if (base.indexOf('/') > -1) {
         //Chose one of two alternative strings.
-        var t = parseTimeString(rule[6]);
+        var t = PARSED_TIME_STRINGS[rule[6]] || parseTimeString(rule[6]);
         var isDst = t[1] || t[2] || t[3];
         res = base.split("/", 2)[isDst ? 1 : 0];
       } else {
