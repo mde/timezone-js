@@ -54,8 +54,20 @@
   var $ = root.$ || root.jQuery || root.Zepto
     , fleegix = root.fleegix
   // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
-    , Days = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-    , Months = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    , DAYS = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    , MONTHS = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    , SHORT_MONTHS = {}
+    , SHORT_DAYS= {};
+
+  //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
+  for (var i = 0; i < MONTHS.length; i++) {
+    SHORT_MONTHS[MONTHS[i].substr(0, 3)] = i;
+  }
+
+  //`{ "Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6 }`
+  for (i = 0; i < DAYS.length; i++) {
+    SHORT_DAYS[DAYS[i].substr(0, 3)] = i;
+  }
 
   // Format a number to the length = digits. For ex:
   //
@@ -305,7 +317,7 @@
       // `H`: hour
       .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
       // `E`: day
-      .replace(/E+/g, function (token) { return timezoneJS.Days[_this.getDay()].substring(0, token.length); })
+      .replace(/E+/g, function (token) { return DAYS[_this.getDay()].substring(0, token.length); })
       // `Z`: timezone abbreviation
       .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
     },
@@ -389,20 +401,8 @@
 
   timezoneJS.timezone = new function () {
     var _this = this
-      , monthMap = {}
-      , dayMap = {}
       , regionMap = {'EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
       , regionExceptions = {'Etc/GMT':'etcetera','Etc/UTC':'etcetera','Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica'};
-
-    //`{ 'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3,'may': 4, 'jun': 5, 'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11 }`
-    for (var i = 0; i < Months.length; i++) {
-      monthMap[Months[i].substr(0,3).toLowerCase()] = i;
-    }
-
-    //`{'sun': 0,'mon' :1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 }`
-    for (i = 0; i < Days.length; i++) {
-      dayMap[Days[i].substr(0,3).toLowerCase()] = i;
-    }
 
     function invalidTZError(t) { throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
@@ -479,7 +479,7 @@
         var mon = 11;
         var dat = 31;
         if (z[4]) {
-          mon = monthMap[z[4].substr(0, 3).toLowerCase()];
+          mon = SHORT_MONTHS[z[4].substr(0, 3)];
           dat = parseInt(z[5], 10);
         }
         t = parseTimeString(z[6] ? z[6] : '23:59:59');
@@ -547,25 +547,14 @@
       var convertRuleToExactDateAndTime = function (yearAndRule, prevRule) {
         var year = yearAndRule[0]
           , rule = yearAndRule[1]
-          , months = {} // Assume that the rule applies to the year of the given date.
-          , days = {};
-
-        //{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }
-        for (var i = 0; i < Months.length; i++) {
-          months[Months[i].substr(0, 3)] = i;
-        }
-
-        //{ "sun": 0, "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6 }
-        for (i = 0; i < Days.length; i++) {
-          days[Days[i].substr(0, 3).toLowerCase()] = i;
-        }
+          // Assume that the rule applies to the year of the given date.
 
         var hms = parseTimeString(rule[5]);
         var effectiveDate;
 
         //If we have a specific date, use that!
         if (!isNaN(rule[4])) {
-          effectiveDate = new Date(Date.UTC(year, months[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
+          effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
         }
         //Let's hunt for the date.
         else {
@@ -574,15 +563,15 @@
           //Example: `lastThu`
           if (rule[4].substr(0, 4) === "last") {
             // Start at the last day of the month and work backward.
-            effectiveDate = new Date(Date.UTC(year, months[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
-            targetDay = days[rule[4].substr(4, 3).toLowerCase()];
+            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
+            targetDay = SHORT_DAYS[rule[4].substr(4, 3)];
             operator = "<=";
           }
           //Example: `Sun>=15`
           else {
             //Start at the specified date.
-            effectiveDate = new Date(Date.UTC(year, months[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
-            targetDay = days[rule[4].substr(0, 3).toLowerCase()];
+            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
+            targetDay = SHORT_DAYS[rule[4].substr(0, 3)];
             operator = rule[4].substr(3, 2);
           }
           var ourDay = effectiveDate.getUTCDay();
