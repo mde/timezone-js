@@ -632,14 +632,19 @@
       };
 
       var compareDates = function (a, b, prev) {
+        var year, rule;
         if (a.constructor !== Date) {
-          a = (!prev && EXACT_DATE_TIME[a[0]] && EXACT_DATE_TIME[a[0]][a[1]]) ? EXACT_DATE_TIME[a[0]][a[1]]
+          year = a[0];
+          rule = a[1];
+          a = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule]) ? EXACT_DATE_TIME[year][rule]
             : convertRuleToExactDateAndTime(a, prev);
         } else if (prev) {
           a = convertDateToUTC(a, isUTC ? 'u' : 'w', prev);
         }
         if (b.constructor !== Date) {
-          b = (!prev && EXACT_DATE_TIME[b[0]] && EXACT_DATE_TIME[b[0]][b[1]]) ? EXACT_DATE_TIME[b[0]][b[1]]
+          year = b[0];
+          rule = b[1];
+          b = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule]) ? EXACT_DATE_TIME[year][rule]
             : convertRuleToExactDateAndTime(b, prev);
         } else if (prev) {
           b = convertDateToUTC(b, isUTC ? 'u' : 'w', prev);
