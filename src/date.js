@@ -58,7 +58,8 @@
     , MONTHS = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     , SHORT_MONTHS = {}
     , SHORT_DAYS = {}
-    , PARSED_TIME_STRINGS = {};
+    , PARSED_TIME_STRINGS = {}
+    , EXACT_DATE_TIME = {}
 
   //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
   for (var i = 0; i < MONTHS.length; i++) {
@@ -556,38 +557,48 @@
         var hms = PARSED_TIME_STRINGS[rule[5]] || parseTimeString(rule[5]);
         var effectiveDate;
 
-        //If we have a specific date, use that!
-        if (!isNaN(rule[4])) {
-          effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
-        }
-        //Let's hunt for the date.
+        if (!EXACT_DATE_TIME[year])
+          EXACT_DATE_TIME[year] = {};
+
+        // Result for given parameters is already stored
+        if (EXACT_DATE_TIME[year][rule])
+          effectiveDate = EXACT_DATE_TIME[year][rule];
         else {
-          var targetDay
-            , operator;
-          //Example: `lastThu`
-          if (rule[4].substr(0, 4) === "last") {
-            // Start at the last day of the month and work backward.
-            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
-            targetDay = SHORT_DAYS[rule[4].substr(4, 3)];
-            operator = "<=";
+          //If we have a specific date, use that!
+          if (!isNaN(rule[4])) {
+            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
           }
-          //Example: `Sun>=15`
+          //Let's hunt for the date.
           else {
-            //Start at the specified date.
-            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
-            targetDay = SHORT_DAYS[rule[4].substr(0, 3)];
-            operator = rule[4].substr(3, 2);
+            var targetDay
+              , operator;
+            //Example: `lastThu`
+            if (rule[4].substr(0, 4) === "last") {
+              // Start at the last day of the month and work backward.
+              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
+              targetDay = SHORT_DAYS[rule[4].substr(4, 3)];
+              operator = "<=";
+            }
+            //Example: `Sun>=15`
+            else {
+              //Start at the specified date.
+              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
+              targetDay = SHORT_DAYS[rule[4].substr(0, 3)];
+              operator = rule[4].substr(3, 2);
+            }
+            var ourDay = effectiveDate.getUTCDay();
+            //Go forwards.
+            if (operator === ">=") {
+              effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay + ((targetDay < ourDay) ? 7 : 0)));
+            }
+            //Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
+            else {
+              effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay - ((targetDay > ourDay) ? 7 : 0)));
+            }
           }
-          var ourDay = effectiveDate.getUTCDay();
-          //Go forwards.
-          if (operator === ">=") {
-            effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay + ((targetDay < ourDay) ? 7 : 0)));
-          }
-          //Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
-          else {
-            effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay - ((targetDay > ourDay) ? 7 : 0)));
-          }
+          EXACT_DATE_TIME[year][rule] = effectiveDate;
         }
+
 
         //If previous rule is given, correct for the fact that the starting time of the current
         // rule may be specified in local time.
@@ -622,12 +633,14 @@
 
       var compareDates = function (a, b, prev) {
         if (a.constructor !== Date) {
-          a = convertRuleToExactDateAndTime(a, prev);
+          a = (!prev && EXACT_DATE_TIME[a[0]] && EXACT_DATE_TIME[a[0]][a[1]]) ? EXACT_DATE_TIME[a[0]][a[1]]
+            : convertRuleToExactDateAndTime(a, prev);
         } else if (prev) {
           a = convertDateToUTC(a, isUTC ? 'u' : 'w', prev);
         }
         if (b.constructor !== Date) {
-          b = convertRuleToExactDateAndTime(b, prev);
+          b = (!prev && EXACT_DATE_TIME[b[0]] && EXACT_DATE_TIME[b[0]][b[1]]) ? EXACT_DATE_TIME[b[0]][b[1]]
+            : convertRuleToExactDateAndTime(b, prev);
         } else if (prev) {
           b = convertDateToUTC(b, isUTC ? 'u' : 'w', prev);
         }
