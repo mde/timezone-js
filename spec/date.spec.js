@@ -204,11 +204,11 @@ describe('timezoneJS.Date', function () {
 
   it('should convert timezone quickly', function () {
     var start = Date.now()
-      , yearToMillis = 365 * 24 * 3600 * 1000
+      , yearToMillis = 5 * 365 * 24 * 3600 * 1000
       , date;
     for (var i = 0; i < 5000; i++) {
       date = new timezoneJS.Date(start - Math.random() * yearToMillis, 'Asia/Bangkok');
-      date.setTimezone('America/New_York');
+      date.setTimezone('Europe/Minsk');
     }
     console.log('Took ' + (Date.now() - start) + 'ms to convert 5000 dates');
   });

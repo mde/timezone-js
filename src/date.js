@@ -57,7 +57,9 @@
     , DAYS = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     , MONTHS = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     , SHORT_MONTHS = {}
-    , SHORT_DAYS= {};
+    , SHORT_DAYS = {}
+    , PARSED_TIME_STRINGS = {}
+    , EXACT_DATE_TIME = {}
 
   //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
   for (var i = 0; i < MONTHS.length; i++) {
@@ -403,7 +405,7 @@
     var _this = this
       , regionMap = {'Etc':'etcetera','EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
       , regionExceptions = {'Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica'};
-
+ 
     function invalidTZError(t) { throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
@@ -450,6 +452,8 @@
       hms[1] = parseInt(hms[1], 10);
       hms[2] = hms[2] ? parseInt(hms[2], 10) : 0;
       hms[3] = hms[3] ? parseInt(hms[3], 10) : 0;
+      PARSED_TIME_STRINGS[str] = hms;
+
       return hms;
     }
     function getZone(dt, tz) {
@@ -482,7 +486,8 @@
           mon = SHORT_MONTHS[z[4].substr(0, 3)];
           dat = parseInt(z[5], 10);
         }
-        t = parseTimeString(z[6] ? z[6] : '23:59:59');
+        var string = z[6] ? z[6] : '23:59:59';
+        t = PARSED_TIME_STRINGS[string] || parseTimeString(string);
         var d = Date.UTC(yea, mon, dat, t[1], t[2], t[3]);
         if (dt.getTime() < d) { break; }
       }
@@ -491,7 +496,7 @@
 
     }
     function getBasicOffset(z) {
-      var off = parseTimeString(z[0])
+      var off = PARSED_TIME_STRINGS[z[0]] || parseTimeString(z[0])
         , adj = z[0].indexOf('-') === 0 ? -1 : 1;
       off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
       return -off/60/1000;
@@ -546,44 +551,54 @@
       //Step 6:  Apply the most recent rule before the current time.
       var convertRuleToExactDateAndTime = function (yearAndRule, prevRule) {
         var year = yearAndRule[0]
-          , rule = yearAndRule[1]
+          , rule = yearAndRule[1];
           // Assume that the rule applies to the year of the given date.
 
-        var hms = parseTimeString(rule[5]);
+        var hms = PARSED_TIME_STRINGS[rule[5]] || parseTimeString(rule[5]);
         var effectiveDate;
 
-        //If we have a specific date, use that!
-        if (!isNaN(rule[4])) {
-          effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
-        }
-        //Let's hunt for the date.
+        if (!EXACT_DATE_TIME[year])
+          EXACT_DATE_TIME[year] = {};
+
+        // Result for given parameters is already stored
+        if (EXACT_DATE_TIME[year][rule])
+          effectiveDate = EXACT_DATE_TIME[year][rule];
         else {
-          var targetDay
-            , operator;
-          //Example: `lastThu`
-          if (rule[4].substr(0, 4) === "last") {
-            // Start at the last day of the month and work backward.
-            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
-            targetDay = SHORT_DAYS[rule[4].substr(4, 3)];
-            operator = "<=";
+          //If we have a specific date, use that!
+          if (!isNaN(rule[4])) {
+            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
           }
-          //Example: `Sun>=15`
+          //Let's hunt for the date.
           else {
-            //Start at the specified date.
-            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
-            targetDay = SHORT_DAYS[rule[4].substr(0, 3)];
-            operator = rule[4].substr(3, 2);
+            var targetDay
+              , operator;
+            //Example: `lastThu`
+            if (rule[4].substr(0, 4) === "last") {
+              // Start at the last day of the month and work backward.
+              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
+              targetDay = SHORT_DAYS[rule[4].substr(4, 3)];
+              operator = "<=";
+            }
+            //Example: `Sun>=15`
+            else {
+              //Start at the specified date.
+              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
+              targetDay = SHORT_DAYS[rule[4].substr(0, 3)];
+              operator = rule[4].substr(3, 2);
+            }
+            var ourDay = effectiveDate.getUTCDay();
+            //Go forwards.
+            if (operator === ">=") {
+              effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay + ((targetDay < ourDay) ? 7 : 0)));
+            }
+            //Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
+            else {
+              effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay - ((targetDay > ourDay) ? 7 : 0)));
+            }
           }
-          var ourDay = effectiveDate.getUTCDay();
-          //Go forwards.
-          if (operator === ">=") {
-            effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay + ((targetDay < ourDay) ? 7 : 0)));
-          }
-          //Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
-          else {
-            effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay - ((targetDay > ourDay) ? 7 : 0)));
-          }
+          EXACT_DATE_TIME[year][rule] = effectiveDate;
         }
+
 
         //If previous rule is given, correct for the fact that the starting time of the current
         // rule may be specified in local time.
@@ -617,13 +632,20 @@
       };
 
       var compareDates = function (a, b, prev) {
+        var year, rule;
         if (a.constructor !== Date) {
-          a = convertRuleToExactDateAndTime(a, prev);
+          year = a[0];
+          rule = a[1];
+          a = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule]) ? EXACT_DATE_TIME[year][rule]
+            : convertRuleToExactDateAndTime(a, prev);
         } else if (prev) {
           a = convertDateToUTC(a, isUTC ? 'u' : 'w', prev);
         }
         if (b.constructor !== Date) {
-          b = convertRuleToExactDateAndTime(b, prev);
+          year = b[0];
+          rule = b[1];
+          b = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule]) ? EXACT_DATE_TIME[year][rule]
+            : convertRuleToExactDateAndTime(b, prev);
         } else if (prev) {
           b = convertDateToUTC(b, isUTC ? 'u' : 'w', prev);
         }
@@ -665,7 +687,7 @@
     }
     function getAdjustedOffset(off, rule) {
       var save = rule[6];
-      var t = parseTimeString(save);
+      var t = PARSED_TIME_STRINGS[save] || parseTimeString(save);
       var adj = save.indexOf('-') === 0 ? -1 : 1;
       var ret = (adj*(((t[1] *60 + t[2]) * 60 + t[3]) * 1000));
       ret = ret/60/1000;
@@ -691,7 +713,7 @@
       }
       else if (base.indexOf('/') > -1) {
         //Chose one of two alternative strings.
-        var t = parseTimeString(rule[6]);
+        var t = PARSED_TIME_STRINGS[rule[6]] || parseTimeString(rule[6]);
         var isDst = t[1] || t[2] || t[3];
         res = base.split("/", 2)[isDst ? 1 : 0];
       } else {
