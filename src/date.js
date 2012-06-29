@@ -58,7 +58,6 @@
     , MONTHS = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     , SHORT_MONTHS = {}
     , SHORT_DAYS = {}
-    , PARSED_TIME_STRINGS = {}
     , EXACT_DATE_TIME = {}
 
   //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
@@ -452,9 +451,21 @@
       hms[1] = parseInt(hms[1], 10);
       hms[2] = hms[2] ? parseInt(hms[2], 10) : 0;
       hms[3] = hms[3] ? parseInt(hms[3], 10) : 0;
-      PARSED_TIME_STRINGS[str] = hms;
 
       return hms;
+    }
+    function processZone(z) {
+      if (!z[3]) { return; }
+      var yea = parseInt(z[3], 10);
+      var mon = 11;
+      var dat = 31;
+      if (z[4]) {
+        mon = SHORT_MONTHS[z[4].substr(0, 3)];
+        dat = parseInt(z[5], 10);
+      }
+      var string = z[6] ? z[6] : '23:59:59';
+      t = parseTimeString(string);
+      return [yea, mon, dat, t[1], t[2], t[3]];
     }
     function getZone(dt, tz) {
       var t = tz;
@@ -479,16 +490,7 @@
       for (var i = 0; i < zoneList.length; i++) {
         var z = zoneList[i];
         if (!z[3]) { break; }
-        var yea = parseInt(z[3], 10);
-        var mon = 11;
-        var dat = 31;
-        if (z[4]) {
-          mon = SHORT_MONTHS[z[4].substr(0, 3)];
-          dat = parseInt(z[5], 10);
-        }
-        var string = z[6] ? z[6] : '23:59:59';
-        t = PARSED_TIME_STRINGS[string] || parseTimeString(string);
-        var d = Date.UTC(yea, mon, dat, t[1], t[2], t[3]);
+        var d = Date.UTC(z[3]);
         if (dt.getTime() < d) { break; }
       }
       if (i === zoneList.length) { throw new Error('No Zone found for "' + tz + '" on ' + dt); }
@@ -496,8 +498,8 @@
 
     }
     function getBasicOffset(z) {
-      var off = PARSED_TIME_STRINGS[z[0]] || parseTimeString(z[0])
-        , adj = z[0].indexOf('-') === 0 ? -1 : 1;
+      var off = z[0][1]
+        , adj = z[0][0].indexOf('-') === 0 ? -1 : 1;
       off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
       return -off/60/1000;
     }
@@ -554,7 +556,7 @@
           , rule = yearAndRule[1];
           // Assume that the rule applies to the year of the given date.
 
-        var hms = PARSED_TIME_STRINGS[rule[5]] || parseTimeString(rule[5]);
+        var hms = rule[5];
         var effectiveDate;
 
         if (!EXACT_DATE_TIME[year])
@@ -686,8 +688,8 @@
       return applicableRules[pinpoint - 1][1];
     }
     function getAdjustedOffset(off, rule) {
-      var save = rule[6];
-      var t = PARSED_TIME_STRINGS[save] || parseTimeString(save);
+      var save = rule[6][0];
+      var t = rule[6][1]
       var adj = save.indexOf('-') === 0 ? -1 : 1;
       var ret = (adj*(((t[1] *60 + t[2]) * 60 + t[3]) * 1000));
       ret = ret/60/1000;
@@ -713,7 +715,7 @@
       }
       else if (base.indexOf('/') > -1) {
         //Chose one of two alternative strings.
-        var t = PARSED_TIME_STRINGS[rule[6]] || parseTimeString(rule[6]);
+        var t = rule[6][1];
         var isDst = t[1] || t[2] || t[3];
         res = base.split("/", 2)[isDst ? 1 : 0];
       } else {
@@ -825,6 +827,10 @@
               if (!_this.zones[zone]) {
                 _this.zones[zone] = [];
               }
+              if (arr.length < 3) break;
+              //Process zone right here and replace 3rd element with the processed array.
+              arr.splice(3, arr.length, processZone(arr));
+              arr[0] = [arr[0], parseTimeString(arr[0])];
               _this.zones[zone].push(arr);
               break;
             case 'Rule':
@@ -832,6 +838,8 @@
               if (!_this.rules[rule]) {
                 _this.rules[rule] = [];
               }
+              arr[5] = parseTimeString(arr[5]);
+              arr[6] = [arr[6], parseTimeString(arr[6])];
               _this.rules[rule].push(arr);
               break;
             case 'Link':
