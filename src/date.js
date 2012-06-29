@@ -489,8 +489,7 @@
       }
       for (var i = 0; i < zoneList.length; i++) {
         var z = zoneList[i];
-        if (!z[3]) { break; }
-        if (dt.getTime() < z[3]) { break; }
+        if (!z[3] || dt.getTime() < z[3]) { break; }
       }
       if (i === zoneList.length) { throw new Error('No Zone found for "' + tz + '" on ' + dt); }
       return zoneList[i];
@@ -828,7 +827,8 @@
               }
               if (arr.length < 3) break;
               //Process zone right here and replace 3rd element with the processed array.
-              arr.splice(3, arr.length, Date.UTC.apply(null, processZone(arr)));
+              arr.splice(3, arr.length, processZone(arr));
+              if (arr[3]) arr[3] = Date.UTC.apply(null, arr[3]);
               arr[0] = [arr[0], parseTimeString(arr[0])];
               _this.zones[zone].push(arr);
               break;
