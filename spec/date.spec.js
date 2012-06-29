@@ -213,10 +213,8 @@ describe('timezoneJS.Date', function () {
     console.log('Took ' + (Date.now() - start) + 'ms to convert 5000 dates');
   });
 
-  it('should create a date quickly', function () {
-    var start = Date.now()
-    new timezoneJS.Date(1234, 'Asia/Bangkok');
-    console.log('Took ' + (Date.now() - start) + 'ms to create a date');
+  it('should output 1955-10-30T00:00:00 America/New_York as EDT', function () {
+    expect(new timezoneJS.Date(1955, 9, 30, 0, 'America/New_York').getTimezoneOffset()).toEqual(240);
   });
 
 

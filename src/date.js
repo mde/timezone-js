@@ -461,7 +461,7 @@
       var dat = 31;
       if (z[4]) {
         mon = SHORT_MONTHS[z[4].substr(0, 3)];
-        dat = parseInt(z[5], 10);
+        dat = parseInt(z[5], 10) || 1;
       }
       var string = z[6] ? z[6] : '23:59:59';
       t = parseTimeString(string);
@@ -490,8 +490,7 @@
       for (var i = 0; i < zoneList.length; i++) {
         var z = zoneList[i];
         if (!z[3]) { break; }
-        var d = Date.UTC(z[3]);
-        if (dt.getTime() < d) { break; }
+        if (dt.getTime() < z[3]) { break; }
       }
       if (i === zoneList.length) { throw new Error('No Zone found for "' + tz + '" on ' + dt); }
       return zoneList[i];
@@ -829,7 +828,7 @@
               }
               if (arr.length < 3) break;
               //Process zone right here and replace 3rd element with the processed array.
-              arr.splice(3, arr.length, processZone(arr));
+              arr.splice(3, arr.length, Date.UTC.apply(null, processZone(arr)));
               arr[0] = [arr[0], parseTimeString(arr[0])];
               _this.zones[zone].push(arr);
               break;
