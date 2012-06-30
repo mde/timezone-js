@@ -497,11 +497,11 @@
       }
       return zoneList[i+1];
     }
-    function getBasicOffset(z) {
-      var off = parseTimeString(z[0])
-        , adj = z[0].indexOf('-') === 0 ? -1 : 1;
+    function getBasicOffset(time) {
+      var off = parseTimeString(time)
+        , adj = time.indexOf('-') === 0 ? -1 : 1;
       off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
-      return -off/60/1000;
+      return off/60/1000;
     }
 
     //if isUTC is true, date is given in UTC, otherwise it's given
@@ -528,9 +528,9 @@
         } else if (type === 's') { // Standard Time
           offset = basicOffset;
         } else if (type === 'w' || !type) { // Wall Clock Time
-          offset = getAdjustedOffset(basicOffset,rule);
+          offset = getAdjustedOffset(basicOffset, rule);
         } else {
-          throw("unknown type "+type);
+          throw("unknown type " + type);
         }
         offset *= 60 * 1000; // to millis
 
@@ -689,14 +689,7 @@
       return applicableRules[pinpoint - 1][1];
     }
     function getAdjustedOffset(off, rule) {
-      var save = rule[6][0];
-      var t = rule[6][1]
-      var adj = save.indexOf('-') === 0 ? -1 : 1;
-      var ret = (adj*(((t[1] *60 + t[2]) * 60 + t[3]) * 1000));
-      ret = ret/60/1000;
-      ret -= off;
-      ret = -Math.ceil(ret);
-      return ret;
+      return -Math.ceil(rule[6] - off);
     }
     function getAbbreviation(zone, rule) {
       var res;
@@ -716,9 +709,7 @@
       }
       else if (base.indexOf('/') > -1) {
         //Chose one of two alternative strings.
-        var t = rule[6][1];
-        var isDst = t[1] || t[2] || t[3];
-        res = base.split("/", 2)[isDst ? 1 : 0];
+        res = base.split("/", 2)[rule[6] ? 1 : 0];
       } else {
         res = base;
       }
@@ -832,7 +823,7 @@
               //Process zone right here and replace 3rd element with the processed array.
               arr.splice(3, arr.length, processZone(arr));
               if (arr[3]) arr[3] = Date.UTC.apply(null, arr[3]);
-              arr[0] = getBasicOffset(arr);
+              arr[0] = -getBasicOffset(arr[0]);
               _this.zones[zone].push(arr);
               break;
             case 'Rule':
@@ -841,7 +832,7 @@
                 _this.rules[rule] = [];
               }
               arr[5] = parseTimeString(arr[5]);
-              arr[6] = [arr[6], parseTimeString(arr[6])];
+              arr[6] = getBasicOffset(arr[6]);
               _this.rules[rule].push(arr);
               break;
             case 'Link':
