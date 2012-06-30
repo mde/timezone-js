@@ -207,7 +207,7 @@ describe('timezoneJS.Date', function () {
       , yearToMillis = 5 * 365 * 24 * 3600 * 1000
       , date;
     for (var i = 0; i < 5000; i++) {
-      date = new timezoneJS.Date(start - Math.random() * yearToMillis, 'Asia/Bangkok');
+      date = new timezoneJS.Date(start - Math.random() * yearToMillis, 'America/New_York');
       date.setTimezone('Europe/Minsk');
     }
     console.log('Took ' + (Date.now() - start) + 'ms to convert 5000 dates');
@@ -216,6 +216,8 @@ describe('timezoneJS.Date', function () {
   it('should output 1955-10-30T00:00:00 America/New_York as EDT', function () {
     expect(new timezoneJS.Date(1955, 9, 30, 0, 'America/New_York').getTimezoneOffset()).toEqual(240);
   });
+
+  
 
 
 });

@@ -487,17 +487,19 @@
         }
         invalidTZError(t);
       }
-      for (var i = 0; i < zoneList.length; i++) {
-        var z = zoneList[i];
-        if (!z[3] || dt.getTime() < z[3]) { break; }
+      if (zoneList.length === 0) {
+        throw new Error('No Zone found for "' + tz + '" on ' + dt);
       }
-      if (i === zoneList.length) { throw new Error('No Zone found for "' + tz + '" on ' + dt); }
-      return zoneList[i];
-
+      //Do backwards lookup since most use cases deal with newer dates.
+      for (var i = zoneList.length - 1; i >= 0; i--) {
+        var z = zoneList[i];
+        if (z[3] && dt.getTime() > z[3]) break;
+      }
+      return zoneList[i+1];
     }
     function getBasicOffset(z) {
-      var off = z[0][1]
-        , adj = z[0][0].indexOf('-') === 0 ? -1 : 1;
+      var off = parseTimeString(z[0])
+        , adj = z[0].indexOf('-') === 0 ? -1 : 1;
       off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
       return -off/60/1000;
     }
@@ -506,7 +508,7 @@
     // in local time (ie. date.getUTC*() returns local time components)
     function getRule(date, zone, isUTC) {
       var ruleset = zone[1];
-      var basicOffset = getBasicOffset(zone);
+      var basicOffset = zone[0];
 
       //Convert a date to UTC. Depending on the 'type' parameter, the date
       // parameter may be:
@@ -636,7 +638,8 @@
         if (a.constructor !== Date) {
           year = a[0];
           rule = a[1];
-          a = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule]) ? EXACT_DATE_TIME[year][rule]
+          a = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule])
+            ? EXACT_DATE_TIME[year][rule]
             : convertRuleToExactDateAndTime(a, prev);
         } else if (prev) {
           a = convertDateToUTC(a, isUTC ? 'u' : 'w', prev);
@@ -829,7 +832,7 @@
               //Process zone right here and replace 3rd element with the processed array.
               arr.splice(3, arr.length, processZone(arr));
               if (arr[3]) arr[3] = Date.UTC.apply(null, arr[3]);
-              arr[0] = [arr[0], parseTimeString(arr[0])];
+              arr[0] = getBasicOffset(arr);
               _this.zones[zone].push(arr);
               break;
             case 'Rule':
@@ -869,14 +872,14 @@
           this.loadZoneFile(zoneFile);
         }
       }
-      var zone = getZone(dt, tz);
-      var off = getBasicOffset(zone);
+      var z = getZone(dt, tz);
+      var off = z[0];
       //See if the offset needs adjustment.
-      var rule = getRule(dt, zone, isUTC);
+      var rule = getRule(dt, z, isUTC);
       if (rule) {
         off = getAdjustedOffset(off, rule);
       }
-      var abbr = getAbbreviation(zone, rule);
+      var abbr = getAbbreviation(z, rule);
       return { tzOffset: off, tzAbbr: abbr };
     };
   };
