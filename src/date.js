@@ -614,12 +614,12 @@
         var applicableRules = [];
         for (var i = 0; ruleset && i < ruleset.length; i++) {
           //Exclude future rules.
-          if (Number(ruleset[i][0]) <= year &&
+          if (ruleset[i][0] <= year &&
               (
                 // Date is in a set range.
-                Number(ruleset[i][1]) >= year ||
+                ruleset[i][1] >= year ||
                 // Date is in an "only" year.
-                  (Number(ruleset[i][0]) === year && ruleset[i][1] === "only") ||
+                  (ruleset[i][0] === year && ruleset[i][1] === "only") ||
                 //We're in a range from the start year to infinity.
                     ruleset[i][1] === "max"
           )
@@ -831,7 +831,12 @@
               if (!_this.rules[rule]) {
                 _this.rules[rule] = [];
               }
+              //Parse int FROM year and TO year
+              arr[0] = parseInt(arr[0], 10);
+              arr[1] = parseInt(arr[1], 10) || arr[1];
+              //Parse time string AT
               arr[5] = parseTimeString(arr[5]);
+              //Parse offset SAVE
               arr[6] = getBasicOffset(arr[6]);
               _this.rules[rule].push(arr);
               break;
