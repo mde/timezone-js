@@ -30,7 +30,7 @@ namespace('test', function () {
   }, {async: true});
 
   task('run', function () {
-    if (!path.existsSync('lib/tz')) {
+    if (!fs.existsSync('lib/tz')) {
       fail('No timezone data. Please run "jake test:init".');
     }
     jake.exec(['jasmine-node spec'], function () {
