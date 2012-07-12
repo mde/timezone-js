@@ -1,7 +1,8 @@
 (function () {
 
   var fs = require('fs')
-  , timezoneJS = require('./date');
+  , timezoneJS = require('./date')
+  , EXCLUDED = new RegExp('factory|(\\.+)', 'i');
 
   function parse(args) {
     // Upgrade passed script args to real Array
@@ -21,6 +22,7 @@
 
     for (var i = 0; i < _tz.zoneFiles.length; i++) {
       var zoneFile = _tz.zoneFiles[i];
+      if (EXCLUDED.test(zoneFile)) continue;
       var zoneData = fs.readFileSync(baseDir + '/' + zoneFile, 'utf8');
       _tz.parseZones(zoneData);
     }
