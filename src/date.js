@@ -70,6 +70,17 @@
     SHORT_DAYS[DAYS[i].substr(0, 3)] = i;
   }
 
+
+  //Handle array indexOf in IE
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (el) {
+      for (var i = 0; i < this.length; i++ ) {
+        if (el === this[i]) return i;
+      }
+      return -1;
+    }
+  }
+
   // Format a number to the length = digits. For ex:
   //
   // `_fixWidth(2, 2) = '02'`
