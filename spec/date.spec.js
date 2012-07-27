@@ -1,5 +1,5 @@
 var TestUtils = require('./test-utils')
-  , timezoneJS = TestUtils.getTimezoneJS();
+, timezoneJS = TestUtils.getTimezoneJS();
 
 describe('timezoneJS.Date', function () {
   it('should have correct format when initialized', function () {
@@ -40,11 +40,11 @@ describe('timezoneJS.Date', function () {
   });
 
   it('should convert dates from UTC to a timezone correctly', function () {
-     var date = new timezoneJS.Date(2011,1,28,12,44,22,172,'Etc/UTC');
-     date.setTimezone('America/Los_Angeles');
-     expect(date.toString('MMM dd yyyy HH:mm:ss k Z')).toEqual('Feb 28 2011 04:44:22 AM PST');
-     expect(date.getTime()).toEqual(1298897062172);
-     expect(date.getHours()).toEqual(4);
+    var date = new timezoneJS.Date(2011,1,28,12,44,22,172,'Etc/UTC');
+    date.setTimezone('America/Los_Angeles');
+    expect(date.toString('MMM dd yyyy HH:mm:ss k Z')).toEqual('Feb 28 2011 04:44:22 AM PST');
+    expect(date.getTime()).toEqual(1298897062172);
+    expect(date.getHours()).toEqual(4);
   });
 
   it('should convert dates from a timezone to UTC correctly', function () {
@@ -73,7 +73,7 @@ describe('timezoneJS.Date', function () {
 
   it('should output toISOString correctly', function () {
     var dtA = new Date()
-      , dt = new timezoneJS.Date();
+    , dt = new timezoneJS.Date();
 
     dtA.setTime(dtA.getTime());
     expect(dt.getTime()).toEqual(dtA.getTime());
@@ -82,7 +82,7 @@ describe('timezoneJS.Date', function () {
 
   it('should output toGMTString correctly', function () {
     var dtA = new Date()
-      , dt = new timezoneJS.Date();
+    , dt = new timezoneJS.Date();
 
     dtA.setTime(dtA.getTime());
     expect(dt.getTime()).toEqual(dtA.getTime());
@@ -92,7 +92,7 @@ describe('timezoneJS.Date', function () {
 
   it('should output toJSON correctly', function () {
     var dtA = new Date()
-      , dt = new timezoneJS.Date();
+    , dt = new timezoneJS.Date();
 
     dtA.setTime(dtA.getTime());
     expect(dt.getTime()).toEqual(dtA.getTime());
@@ -101,7 +101,7 @@ describe('timezoneJS.Date', function () {
 
   it('should take in millis as constructor', function () {
     var dtA = new Date(0)
-      , dt = new timezoneJS.Date(dtA.getTime());
+    , dt = new timezoneJS.Date(dtA.getTime());
 
     expect(dt.getTime()).toEqual(dtA.getTime());
     expect(dt.toJSON()).toEqual(dtA.toJSON());
@@ -109,7 +109,7 @@ describe('timezoneJS.Date', function () {
 
   it('should take in Date object as constructor', function () {
     var dtA = new Date(0)
-      , dt = new timezoneJS.Date(dtA);
+    , dt = new timezoneJS.Date(dtA);
 
     expect(dt.getTime()).toEqual(dtA.getTime());
     expect(dt.toJSON()).toEqual(dtA.toJSON());
@@ -117,14 +117,14 @@ describe('timezoneJS.Date', function () {
 
   it('should take in millis and tz as constructor', function () {
     var dtA = new Date(0)
-      , dt = new timezoneJS.Date(dtA.getTime(), 'Asia/Bangkok');
+    , dt = new timezoneJS.Date(dtA.getTime(), 'Asia/Bangkok');
 
     expect(dt.getTime()).toEqual(0);
   });
 
   it('should take in Date object as constructor', function () {
     var dtA = new Date(0)
-      , dt = new timezoneJS.Date(dtA, 'Asia/Bangkok');
+    , dt = new timezoneJS.Date(dtA, 'Asia/Bangkok');
 
     expect(dt.getTime()).toEqual(0);
   });
@@ -148,7 +148,7 @@ describe('timezoneJS.Date', function () {
 
   it('should take in String as constructor', function () {
     var dtA = new Date()
-      , dt = new timezoneJS.Date(dtA.toJSON());
+    , dt = new timezoneJS.Date(dtA.toJSON());
 
     expect(dt.toJSON()).toEqual(dtA.toJSON());
   });
@@ -156,7 +156,7 @@ describe('timezoneJS.Date', function () {
 
   it('should be able to set hours', function () {
     var dtA = new Date(0)
-      , dt = new timezoneJS.Date(0, 'Etc/UTC');
+    , dt = new timezoneJS.Date(0, 'Etc/UTC');
 
     dt.setHours(6);
     expect(dt.getHours()).toEqual(6);
@@ -164,7 +164,7 @@ describe('timezoneJS.Date', function () {
 
   it('should be able to set date without altering others', function () {
     var dt = new timezoneJS.Date(2012, 2, 2, 5, 0, 0, 0, 'America/Los_Angeles')
-      , dt2 = new timezoneJS.Date(2011, 4, 15, 23, 0, 0, 0, 'Asia/Bangkok');
+    , dt2 = new timezoneJS.Date(2011, 4, 15, 23, 0, 0, 0, 'Asia/Bangkok');
 
     var hours = dt.getHours();
     dt.setDate(1);
@@ -195,7 +195,7 @@ describe('timezoneJS.Date', function () {
 
   it('should be able to clone itself', function () {
     var dt = new timezoneJS.Date(0, 'America/Chicago')
-      , dtA = dt.clone();
+    , dtA = dt.clone();
 
     expect(dt.getTime()).toEqual(dtA.getTime());
     expect(dt.toString()).toEqual(dtA.toString());
@@ -205,8 +205,8 @@ describe('timezoneJS.Date', function () {
 
   it('should convert timezone quickly', function () {
     var start = Date.now()
-      , yearToMillis = 5 * 365 * 24 * 3600 * 1000
-      , date;
+    , yearToMillis = 5 * 365 * 24 * 3600 * 1000
+    , date;
     for (var i = 0; i < 5000; i++) {
       date = new timezoneJS.Date(start - Math.random() * yearToMillis, 'America/New_York');
       date.setTimezone('Europe/Minsk');
@@ -221,8 +221,9 @@ describe('timezoneJS.Date', function () {
 
   it('should handle Pacific/Apia correctly', function () {
     var dt = new timezoneJS.Date(2011, 11, 29, 23, 59, 59, 'Pacific/Apia');
-    dt.setTime(dt.getTime() + 1000);
+    var t = dt.getTime() + 1000;
+    dt.setTime(t);
     expect(dt.toString()).toEqual('2011-12-31 00:00:00');
+    expect(dt.getTime()).toEqual(t);
   });
-
 });

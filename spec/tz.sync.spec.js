@@ -42,6 +42,30 @@ describe('TimezoneJS', function () {
     expect(dt.tzOffset).toEqual(120);
   });
 
+  it('should get New_York time correctly', function () {
+    // Source: http://www.timeanddate.com/worldclock/city.html?n=110
+    // Changes every year!
+    var dt;
+    // 2006
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2006-04-02T01:59:59'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(300);
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2006-04-02T03:00:01'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(240);
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2006-10-29T00:59:59'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(240);
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2006-10-29T03:00:01'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(300);
+    // 2009
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2009-03-08T01:59:59'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(300);
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2009-03-08T03:00:01'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(240);
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2009-11-01T00:59:59'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(240);
+    dt = timezoneJS.timezone.getTzInfo(parseISO('2009-11-01T03:00:01'), 'America/New_York');
+    expect(dt.tzOffset).toEqual(300);
+  });
+
   it('should get Jerusalem time correctly', function () {
     // Source: http://www.timeanddate.com/worldclock/city.html?n=110
     // Changes every year!

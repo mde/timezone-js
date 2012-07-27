@@ -203,7 +203,7 @@
     // Date `dt` created should be in UTC. Thus the way I detect such cases is to determine if `arr` is not populated & `tz`
     // is specified. Because if `tz` is not specified, `dt` can be in local time.
     if (arr.length) {
-       this.setFromDateObjProxy(dt, false);
+       this.setFromDateObjProxy(dt);
     } else {
        this.setFromTimeProxy(dt.getTime(), tz);
     }
@@ -235,7 +235,7 @@
       var res;
       // If timezone is specified, get the correct timezone info based on the Date given
       if (this.timezone) {
-        res = timezoneJS.timezone.getTzInfo(Date.UTC.apply(this, this._extractTimeArray()), this.timezone);
+        res = timezoneJS.timezone.getTzInfo(Date.UTC.apply(root, this._extractTimeArray()), this.timezone);
       }
       // If no timezone was specified, use the local browser offset
       else {
@@ -352,9 +352,10 @@
     },
     setFromTimeProxy: function (utcMillis, tz) {
       var dt = new Date(utcMillis);
-      var tzOffset = tz ? timezoneJS.timezone.getTzInfo(utcMillis, tz).tzOffset : dt.getTimezoneOffset();
-      dt.setTime(utcMillis + (dt.getTimezoneOffset() - tzOffset) * 60000);
-      this.setFromDateObjProxy(dt, false);
+      var tzOffset;
+      tzOffset = tz ? timezoneJS.timezone.getTzInfo(dt, tz).tzOffset : dt.getTimezoneOffset();
+      dt.setTime(utcMillis - tzOffset * 60000);
+      this.setFromDateObjProxy(dt, true);
     },
     getUTCDateProxy: function () {
       var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
@@ -421,7 +422,6 @@
     var _this = this
       , regionMap = {'Etc':'etcetera','EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
       , regionExceptions = {'Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica'};
- 
     function invalidTZError(t) { throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
@@ -693,7 +693,6 @@
         applicableRules = applicableRules.concat(findApplicableRules(year-1, _this.rules[ruleset]));
         applicableRules.sort(compareDates);
       }
-
       var pinpoint = applicableRules.indexOf(date);
       if (pinpoint > 1 && compareDates(date, applicableRules[pinpoint-1], applicableRules[pinpoint-2][1]) < 0) {
         //The previous rule does not really apply, take the one before that.
