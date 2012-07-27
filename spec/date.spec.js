@@ -218,4 +218,11 @@ describe('timezoneJS.Date', function () {
     var dt = new timezoneJS.Date(1955, 9, 30, 0, 0, 0, 'America/New_York');
     expect(dt.getTimezoneOffset()).toEqual(240);
   });
+
+  it('should handle Pacific/Apia correctly', function () {
+    var dt = new timezoneJS.Date(2011, 11, 29, 23, 59, 59, 'Pacific/Apia');
+    dt.setTime(dt.getTime() + 1000);
+    expect(dt.toString()).toEqual('2011-12-31 00:00:00');
+  });
+
 });
