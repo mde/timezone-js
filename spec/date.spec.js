@@ -119,22 +119,23 @@ describe('timezoneJS.Date', function () {
     var dtA = new Date(0)
       , dt = new timezoneJS.Date(dtA.getTime(), 'Asia/Bangkok');
 
-    expect(dt.getTime()).toEqual(-7 * 3600 * 1000);
+    expect(dt.getTime()).toEqual(0);
   });
 
   it('should take in Date object as constructor', function () {
     var dtA = new Date(0)
       , dt = new timezoneJS.Date(dtA, 'Asia/Bangkok');
 
-    expect(dt.getTime()).toEqual(-7 * 3600 * 1000);
+    expect(dt.getTime()).toEqual(0);
   });
 
   it('should take in String and Asia/Bangkok as constructor', function () {
+    //This is a RFC 3339 UTC string format
     var dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Asia/Bangkok');
 
-    expect(dt.toString()).toEqual('2012-01-01 15:00:00');
-    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T03:00:00.000');
-    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS')).toEqual('2012-01-01T15:00:00.000');
+    expect(dt.toString()).toEqual('2012-01-01 22:00:00');
+    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T10:00:00.000');
+    expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS')).toEqual('2012-01-01T22:00:00.000');
   });
 
   it('should take in String and Etc/UTC as constructor', function () {
@@ -184,9 +185,9 @@ describe('timezoneJS.Date', function () {
 
 
   it('should adjust daylight saving correctly', function () {
-    var dt1 = new timezoneJS.Date('2012-03-11T03:00:00', 'America/Chicago');
+    var dt1 = new timezoneJS.Date(2012, 2, 11, 3, 0, 0, 'America/Chicago');
     expect(dt1.getTimezoneAbbreviation()).toEqual('CDT');
-    var dt2 = new timezoneJS.Date('2012-03-11T01:59:59', 'America/Chicago');
+    var dt2 = new timezoneJS.Date(2012, 2, 11, 1, 59, 59, 'America/Chicago');
 
     expect(dt2.getTimezoneAbbreviation()).toEqual('CST');
     expect(dt2.getTimezoneOffset()).toEqual(360);
@@ -213,11 +214,8 @@ describe('timezoneJS.Date', function () {
     console.log('Took ' + (Date.now() - start) + 'ms to convert 5000 dates');
   });
 
-  it('should output 1955-10-30T00:00:00 America/New_York as EDT', function () {
-    expect(new timezoneJS.Date(1955, 9, 30, 0, 'America/New_York').getTimezoneOffset()).toEqual(240);
+  it('should output 1955-10-30 00:00:00 America/New_York as EDT', function () {
+    var dt = new timezoneJS.Date(1955, 9, 30, 0, 0, 0, 'America/New_York');
+    expect(dt.getTimezoneOffset()).toEqual(240);
   });
-
-  
-
-
 });

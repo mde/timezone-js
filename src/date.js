@@ -192,7 +192,7 @@
     this.year = 0;
     this.month = 0;
     this.date = 0;
-    this.hours= 0;
+    this.hours = 0;
     this.minutes = 0;
     this.seconds = 0;
     this.milliseconds = 0;
@@ -202,7 +202,11 @@
     // For the cases where there are 1/2 arguments: `timezoneJS.Date(millis, [tz])` and `timezoneJS.Date(Date, [tz])`. The
     // Date `dt` created should be in UTC. Thus the way I detect such cases is to determine if `arr` is not populated & `tz`
     // is specified. Because if `tz` is not specified, `dt` can be in local time.
-    this.setFromDateObjProxy(dt, !arr.length && tz);
+    if (arr.length) {
+       this.setFromDateObjProxy(dt, false);
+    } else {
+       this.setFromTimeProxy(dt.getTime(), tz);
+    }
   };
 
   // Implements most of the native Date object
@@ -231,9 +235,7 @@
       var res;
       // If timezone is specified, get the correct timezone info based on the Date given
       if (this.timezone) {
-        var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
-        var tz = this.timezone;
-        res = timezoneJS.timezone.getTzInfo(dt, tz);
+        res = timezoneJS.timezone.getTzInfo(Date.UTC.apply(this, this._extractTimeArray()), this.timezone);
       }
       // If no timezone was specified, use the local browser offset
       else {
@@ -349,6 +351,12 @@
       this._day = fromUTC ? dt.getUTCDay() : dt.getDay();
       this._dateProxy = dt;
       this._useCache = false;
+    },
+    setFromTimeProxy: function (utcMillis, tz) {
+      var dt = new Date(utcMillis);
+      var tzOffset = tz ? timezoneJS.timezone.getTzInfo(utcMillis, tz).tzOffset : dt.getTimezoneOffset();
+      dt.setTime(utcMillis + (dt.getTimezoneOffset() - tzOffset) * 60000);
+      this.setFromDateObjProxy(dt, false);
     },
     getUTCDateProxy: function () {
       var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
@@ -479,9 +487,10 @@
       return [yea, mon, dat, t[1], t[2], t[3]];
     }
     function getZone(dt, tz) {
+      var utcMillis = typeof dt === 'number' ? dt : new Date(dt).getTime();
       var t = tz;
       var zoneList = _this.zones[t];
-      // Follow links to get to an acutal zone
+      // Follow links to get to an actual zone
       while (typeof zoneList === "string") {
         t = zoneList;
         zoneList = _this.zones[t];
@@ -504,7 +513,7 @@
       //Do backwards lookup since most use cases deal with newer dates.
       for (var i = zoneList.length - 1; i >= 0; i--) {
         var z = zoneList[i];
-        if (z[3] && dt.getTime() > z[3]) break;
+        if (z[3] && utcMillis > z[3]) break;
       }
       return zoneList[i+1];
     }
@@ -517,7 +526,8 @@
 
     //if isUTC is true, date is given in UTC, otherwise it's given
     // in local time (ie. date.getUTC*() returns local time components)
-    function getRule(date, zone, isUTC) {
+    function getRule(dt, zone, isUTC) {
+      var date = typeof dt === 'number' ? new Date(dt) : dt;
       var ruleset = zone[1];
       var basicOffset = zone[0];
 
@@ -528,7 +538,7 @@
       //
       // - `s`: standard time (adjust for time zone offset but not for DST)
       //
-      // - `w`: wall clock time (adjust for both time zone and DST offset).
+    // - `w`: wall clock time (adjust for both time zone and DST offset).
       //
       // DST adjustment is done using the rule given as third argument.
       var convertDateToUTC = function (date, type, rule) {
