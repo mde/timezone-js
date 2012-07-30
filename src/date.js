@@ -183,9 +183,6 @@
         break;
     }
 
-    this._extractTimeArray = function () {
-      return [this.year, this.month, this.date, this.hours, this.minutes, this.seconds, this.milliseconds, this.timezone];
-    };
     this._useCache = false;
     this._tzInfo = {};
     this._day = 0;
@@ -197,7 +194,6 @@
     this.seconds = 0;
     this.milliseconds = 0;
     this.timezone = tz || null;
-    this.utc = tz === 'Etc/UTC' || tz === 'Etc/GMT';
     //Tricky part:
     // For the cases where there are 1/2 arguments: `timezoneJS.Date(millis, [tz])` and `timezoneJS.Date(Date, [tz])`. The
     // Date `dt` created should be in UTC. Thus the way I detect such cases is to determine if `arr` is not populated & `tz`
@@ -220,31 +216,6 @@
     getMilliseconds: function () { return this.milliseconds; },
     getMinutes: function () { return this.minutes; },
     getSeconds: function () { return this.seconds; },
-    // Time adjusted to user-specified timezone
-    getTime: function () {
-      var dt = Date.UTC.apply(root, this._extractTimeArray());
-      return dt + (this.getTimezoneOffset() * 60 * 1000);
-    },
-    getTimezone: function () { return this.timezone; },
-    getTimezoneOffset: function () { return this.getTimezoneInfo().tzOffset; },
-    getTimezoneAbbreviation: function () { return this.getTimezoneInfo().tzAbbr; },
-    getTimezoneInfo: function () {
-      // If UTC, easy!
-      if (this.utc) return { tzOffset: 0, tzAbbr: 'UTC' };
-      if (this._useCache) return this._tzInfo;
-      var res;
-      // If timezone is specified, get the correct timezone info based on the Date given
-      if (this.timezone) {
-        res = timezoneJS.timezone.getTzInfo(Date.UTC.apply(root, this._extractTimeArray()), this.timezone);
-      }
-      // If no timezone was specified, use the local browser offset
-      else {
-        res = { tzOffset: this.getLocalOffset(), tzAbbr: null };
-      }
-      this._tzInfo = res;
-      this._useCache = true;
-      return res;
-    },
     getUTCDate: function () { return this.getUTCDateProxy().getUTCDate(); },
     getUTCDay: function () { return this.getUTCDateProxy().getUTCDay(); },
     getUTCFullYear: function () { return this.getUTCDateProxy().getUTCFullYear(); },
@@ -253,6 +224,35 @@
     getUTCMinutes: function () { return this.getUTCDateProxy().getUTCMinutes(); },
     getUTCMonth: function () { return this.getUTCDateProxy().getUTCMonth(); },
     getUTCSeconds: function () { return this.getUTCDateProxy().getUTCSeconds(); },
+    // Time adjusted to user-specified timezone
+    getTime: function () {
+      return this._timeProxy + (this.getTimezoneOffset() * 60 * 1000);
+    },
+    getTimezone: function () { return this.timezone; },
+    getTimezoneOffset: function () { return this.getTimezoneInfo().tzOffset; },
+    getTimezoneAbbreviation: function () { return this.getTimezoneInfo().tzAbbr; },
+    getTimezoneInfo: function () {
+      if (this._useCache) return this._tzInfo;
+      var res;
+      // If timezone is specified, get the correct timezone info based on the Date given
+      if (this.timezone) {
+        res = this.timezone === 'Etc/UTC' || this.timezone === 'Etc/GMT'
+          ? { tzOffset: 0, tzAbbr: 'UTC' }
+          : timezoneJS.timezone.getTzInfo(this._timeProxy, this.timezone);
+      }
+      // If no timezone was specified, use the local browser offset
+      else {
+        res = { tzOffset: this.getLocalOffset(), tzAbbr: null };
+      }
+      this._tzInfo = res;
+      this._useCache = true;
+      return res
+    },
+    getUTCDateProxy: function () {
+      var dt = new Date(this._timeProxy);
+      dt.setUTCMinutes(dt.getUTCMinutes() + this.getTimezoneOffset());
+      return dt;
+    },
     setDate: function (n) { this.setAttribute('date', n); },
     setFullYear: function (n) { this.setAttribute('year', n); },
     setMonth: function (n) { this.setAttribute('month', n); },
@@ -272,6 +272,56 @@
     setUTCMinutes: function (n) { this.setUTCAttribute('minutes', n); },
     setUTCMonth: function (n) { this.setUTCAttribute('month', n); },
     setUTCSeconds: function (n) { this.setUTCAttribute('seconds', n); },
+    setFromDateObjProxy: function (dt) {
+      this.year = dt.getFullYear();
+      this.month = dt.getMonth();
+      this.date = dt.getDate();
+      this.hours = dt.getHours();
+      this.minutes = dt.getMinutes();
+      this.seconds = dt.getSeconds();
+      this.milliseconds = dt.getMilliseconds();
+      this._day =  dt.getDay();
+      this._dateProxy = dt;
+      this._timeProxy = Date.UTC(this.year, this.month, this.date, this.hours, this.minutes, this.seconds, this.milliseconds);
+      this._useCache = false;
+    },
+    setFromTimeProxy: function (utcMillis, tz) {
+      var dt = new Date(utcMillis);
+      var tzOffset;
+      tzOffset = tz ? timezoneJS.timezone.getTzInfo(dt, tz).tzOffset : dt.getTimezoneOffset();
+      dt.setTime(utcMillis + (dt.getTimezoneOffset() - tzOffset) * 60000);
+      this.setFromDateObjProxy(dt);
+    },
+    setAttribute: function (unit, n) {
+      if (isNaN(n)) { throw new Error('Units must be a number.'); }
+      var dt = this._dateProxy;
+      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
+      dt['set' + meth](n);
+      this.setFromDateObjProxy(dt);
+    },
+    setUTCAttribute: function (unit, n) {
+      if (isNaN(n)) { throw new Error('Units must be a number.'); }
+      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
+      var dt = this.getUTCDateProxy();
+      dt['setUTC' + meth](n);
+      dt.setUTCMinutes(dt.getUTCMinutes() - this.getTimezoneOffset());
+      this.setFromTimeProxy(dt.getTime() + this.getTimezoneOffset() * 60000, this.timezone);
+    },
+    setTimezone: function (tz) {
+      var previousOffset = this.getTimezoneInfo().tzOffset;
+      this.timezone = tz;
+      this._useCache = false;
+      // Set UTC minutes offsets by the delta of the two timezones
+      this.setUTCMinutes(this.getUTCMinutes() - this.getTimezoneInfo().tzOffset + previousOffset);
+    },
+    removeTimezone: function () {
+      this.timezone = null;
+      this._useCache = false;
+    },
+    valueOf: function () { return this.getTime(); },
+    clone: function () {
+      return this.timezone ? new timezoneJS.Date(this.getTime(), this.timezone) : new timezoneJS.Date(this.getTime());
+    },
     toGMTString: function () { return this.toString('EEE, dd MMM yyyy HH:mm:ss Z', 'Etc/GMT'); },
     toLocaleString: function () {},
     toLocaleDateString: function () {},
@@ -284,7 +334,7 @@
       // Default format is the same as toISOString
       if (!format) return this.toString('yyyy-MM-dd HH:mm:ss');
       var result = format;
-      var tzInfo = tz ? timezoneJS.timezone.getTzInfo(new Date(this.getTime()), tz) : this.getTimezoneInfo();
+      var tzInfo = tz ? timezoneJS.timezone.getTzInfo(this.getTime(), tz) : this.getTimezoneInfo();
       var _this = this;
       // If timezone is specified, get a clone of the current Date object and modify it
       if (tz) {
@@ -334,66 +384,6 @@
       .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
     },
     toUTCString: function () { return this.toGMTString(); },
-    valueOf: function () { return this.getTime(); },
-    clone: function () {
-      return new timezoneJS.Date(this._extractTimeArray());
-    },
-    setFromDateObjProxy: function (dt, fromUTC) {
-      this.year = fromUTC ? dt.getUTCFullYear() : dt.getFullYear();
-      this.month = fromUTC ? dt.getUTCMonth() : dt.getMonth();
-      this.date = fromUTC ? dt.getUTCDate() : dt.getDate();
-      this.hours = fromUTC ? dt.getUTCHours() : dt.getHours();
-      this.minutes = fromUTC ? dt.getUTCMinutes() : dt.getMinutes();
-      this.seconds = fromUTC ? dt.getUTCSeconds() : dt.getSeconds();
-      this.milliseconds = fromUTC ? dt.getUTCMilliseconds() : dt.getMilliseconds();
-      this._day = fromUTC ? dt.getUTCDay() : dt.getDay();
-      this._dateProxy = dt;
-      this._useCache = false;
-    },
-    setFromTimeProxy: function (utcMillis, tz) {
-      var dt = new Date(utcMillis);
-      var tzOffset;
-      tzOffset = tz ? timezoneJS.timezone.getTzInfo(dt, tz).tzOffset : dt.getTimezoneOffset();
-      dt.setTime(utcMillis - tzOffset * 60000);
-      this.setFromDateObjProxy(dt, true);
-    },
-    getUTCDateProxy: function () {
-      var dt = new Date(Date.UTC.apply(root, this._extractTimeArray()));
-      dt.setUTCMinutes(dt.getUTCMinutes() + this.getTimezoneOffset());
-      return dt;
-    },
-    setAttribute: function (unit, n) {
-      if (isNaN(n)) { throw new Error('Units must be a number.'); }
-      var dt = this._dateProxy;
-      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
-      dt['set' + meth](n);
-      this.setFromDateObjProxy(dt);
-    },
-    setUTCAttribute: function (unit, n) {
-      if (isNaN(n)) { throw new Error('Units must be a number.'); }
-      var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
-      var dt = this.getUTCDateProxy();
-      dt['setUTC' + meth](n);
-      dt.setUTCMinutes(dt.getUTCMinutes() - this.getTimezoneOffset());
-      this.setFromDateObjProxy(dt, true);
-    },
-    setTimezone: function (tz) {
-      var previousOffset = this.getTimezoneInfo().tzOffset;
-
-      this.utc = tz === 'Etc/UTC' || tz === 'Etc/GMT';
-      this.timezone = tz;
-      this._useCache = false;
-
-      // Create a new time that offsets by the delta of the two timezones
-      var _this = this.clone();
-      _this.setUTCMinutes(_this.getUTCMinutes() - this.getTimezoneInfo().tzOffset + previousOffset);
-      this.setFromDateObjProxy(_this, this.utc);
-    },
-    removeTimezone: function () {
-      this.utc = false;
-      this.timezone = null;
-      this._useCache = false;
-    },
     civilToJulianDayNumber: function (y, m, d) {
       var a;
       // Adjust for zero-based JS-style array

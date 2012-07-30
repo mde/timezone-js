@@ -13,7 +13,7 @@ describe('timezoneJS.Date', function () {
   });
 
   it('should get date correctly from UTC (2011-10-28T12:44:22.172000000)', function () {
-    var date = new timezoneJS.Date(2011,9,28,12,44,22,172,'Etc/UTC');
+    var date = new timezoneJS.Date(2011, 9, 28, 12, 44, 22, 172,'Etc/UTC');
     expect(date.getTime()).toEqual(1319805862172);
     expect(date.toString()).toEqual('2011-10-28 12:44:22');
     expect(date.toString('yyyy-MM-dd')).toEqual('2011-10-28');
@@ -187,6 +187,7 @@ describe('timezoneJS.Date', function () {
   it('should adjust daylight saving correctly', function () {
     var dt1 = new timezoneJS.Date(2012, 2, 11, 3, 0, 0, 'America/Chicago');
     expect(dt1.getTimezoneAbbreviation()).toEqual('CDT');
+    expect(dt1.getTimezoneOffset()).toEqual(300);
     var dt2 = new timezoneJS.Date(2012, 2, 11, 1, 59, 59, 'America/Chicago');
 
     expect(dt2.getTimezoneAbbreviation()).toEqual('CST');
@@ -225,5 +226,15 @@ describe('timezoneJS.Date', function () {
     dt.setTime(t);
     expect(dt.toString()).toEqual('2011-12-31 00:00:00');
     expect(dt.getTime()).toEqual(t);
+  });
+
+  it('should have correct DST time during transition', function () {
+    console.log("\n\nTesting timezone-js transition millis...\n");
+    var dt = new timezoneJS.Date(1162101599999, 'America/New_York');
+    expect(dt.getTimezoneAbbreviation()).toEqual('EDT');
+    dt = new timezoneJS.Date(1162101600000, 'America/New_York');
+    expect(dt.getTimezoneAbbreviation()).toEqual('EST');
+    dt = new timezoneJS.Date(1162101600000 + 3600*1000, 'America/New_York');
+    expect(dt.getTimezoneAbbreviation()).toEqual('EST');
   });
 });
