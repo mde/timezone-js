@@ -133,6 +133,7 @@
     })
     : $.ajax({
       url : opts.url,
+      dataType: 'text',
       method : 'GET',
       error : opts.error,
       success : opts.success
