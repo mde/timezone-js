@@ -22,6 +22,21 @@ First you'll need to include the code on your page. Both `timezoneJS.Date`, and 
 
 Next you'll need the Olson time zone files -- `timezoneJS.Date` uses the raw Olson data to calculate timezone offsets. The Olson region files are simple, structured text data, which download quickly and parse easily. (They also compress to a very small size.)
 
+Here is an example of how to get the Olson time zone files
+
+    ##!/bin/bash
+        
+    # NOTE: Run from your webroot
+    
+    # Create the /tz directory
+    mkdir tz
+    
+    # Download the latest Olson files
+    curl ftp://ftp.iana.org/tz/tzdata-latest.tar.gz -o tz/tzdata-latest.tar.gz
+    
+    # Expand the files
+    tar -xvvzf tz/tzdata-latest.tar.gz -C tz
+
 Then you'll need to make the files available to the `timezoneJS.timezone` code, and initialize the code to parse your default region. (This will be North America if you don't change it). No sense in downloading and parsing timezone data for the entire world if you're not going to be using it.
 
 Put your directory of Olson files somewhere under your Web server root, and point `timezoneJS.timezone.zoneFileBasePath` to it. Then call the init function. Your code will look something like this:
