@@ -481,8 +481,8 @@
         mon = SHORT_MONTHS[z[4].substr(0, 3)];
         dat = parseInt(z[5], 10) || 1;
       }
-      var string = z[6] ? z[6] : '00:00:00';
-      t = parseTimeString(string);
+      var string = z[6] ? z[6] : '00:00:00',
+          t = parseTimeString(string);
       return [yea, mon, dat, t[1], t[2], t[3]];
     }
     function getZone(dt, tz) {
