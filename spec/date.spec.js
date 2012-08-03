@@ -227,14 +227,4 @@ describe('timezoneJS.Date', function () {
     expect(dt.toString()).toEqual('2011-12-31 00:00:00');
     expect(dt.getTime()).toEqual(t);
   });
-
-  it('should have correct DST time during transition', function () {
-    console.log("\n\nTesting timezone-js transition millis...\n");
-    var dt = new timezoneJS.Date(1162101599999, 'America/New_York');
-    expect(dt.getTimezoneAbbreviation()).toEqual('EDT');
-    dt = new timezoneJS.Date(1162101600000, 'America/New_York');
-    expect(dt.getTimezoneAbbreviation()).toEqual('EST');
-    dt = new timezoneJS.Date(1162101600000 + 3600*1000, 'America/New_York');
-    expect(dt.getTimezoneAbbreviation()).toEqual('EST');
-  });
 });

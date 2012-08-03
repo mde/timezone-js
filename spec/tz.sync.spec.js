@@ -43,7 +43,7 @@ describe('TimezoneJS', function () {
   });
 
   it('should get New_York time correctly', function () {
-    // Source: http://www.timeanddate.com/worldclock/city.html?n=110
+    // Source: http://www.timeanddate.com/worldclock/city.html?n=179
     // Changes every year!
     var dt;
     // 2006
