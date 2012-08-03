@@ -20,7 +20,7 @@ namespace('test', function () {
     , 'curl ftp://ftp.iana.org/tz/tzdata-latest.tar.gz ' +
           '-o lib/tz/tzdata-latest.tar.gz'
     , 'echo "Expanding archive ..."'
-    , 'tar -xvvzf lib/tz/tzdata-latest.tar.gz -C lib/tz'
+    , 'tar -xvzf lib/tz/tzdata-latest.tar.gz -C lib/tz'
     ];
     jake.mkdirP('lib/tz');
     jake.exec(cmds, function () {
