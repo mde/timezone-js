@@ -39,6 +39,12 @@ describe('timezoneJS.Date', function () {
     expect(date.toString('MMM dd yyyy HH:mm:ss k Z', 'Indian/Cocos')).toEqual('Feb 28 2011 07:14:22 PM CCT');
   });
 
+  it('should use a default format with the given tz', function () {
+    var date = new timezoneJS.Date(2012, 7, 30, 10, 56, 0, 0, 'America/Los_Angeles');
+    expect(date.toString(null, 'Etc/UTC')).toEqual(date.toString('yyyy-MM-dd HH:mm:ss', 'Etc/UTC'));
+    expect(date.toString(null, 'America/New_York')).toEqual(date.toString('yyyy-MM-dd HH:mm:ss', 'America/New_York'));
+  });
+
   it('should convert dates from UTC to a timezone correctly', function () {
     var date = new timezoneJS.Date(2011,1,28,12,44,22,172,'Etc/UTC');
     date.setTimezone('America/Los_Angeles');
