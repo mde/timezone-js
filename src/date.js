@@ -59,6 +59,7 @@
     , SHORT_MONTHS = {}
     , SHORT_DAYS = {}
     , EXACT_DATE_TIME = {}
+    , TZ_REGEXP = new RegExp('^[a-zA-Z]+/');
 
   //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
   for (var i = 0; i < MONTHS.length; i++) {
@@ -166,7 +167,7 @@
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
       args = args[0];
     }
-    if (typeof args[args.length - 1] === 'string' && /^[a-zA-Z]+\//gi.test(args[args.length - 1])) {
+    if (typeof args[args.length - 1] === 'string' && TZ_REGEXP.test(args[args.length - 1])) {
       tz = args.pop();
     }
     switch (args.length) {
