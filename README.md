@@ -171,7 +171,7 @@ This project use [Jake](https://github.com/mde/jake) to build. In order to see a
 Feel free to fork and modify at your own will.
 The source code is annotated and doc can be generated with `jake doc`.
 
-## Copyright
+## License
 
 
 Copyright 2010 Matthew Eernisse (mde@fleegix.org) and Open Source Applications Foundation.
