@@ -25,7 +25,11 @@ namespace('test', function () {
     jake.mkdirP('lib/tz');
     jake.exec(cmds, function () {
       console.log('Retrieved new timezone data');
-      complete();
+      console.log('Parsing tz...');
+      jake.exec('node src/node-preparse.js lib/tz > lib/all_cities.json', function () {
+        console.log('Done parsing tz');
+        complete();
+      }, {printStdout: true, printStderr: true});
     }, {printStdout: true});
   }, {async: true});
 

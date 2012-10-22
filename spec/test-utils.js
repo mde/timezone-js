@@ -1,6 +1,5 @@
 var fs = require('fs');
 (function () {
-
   var root = this;
 
   var TestUtils = {};
@@ -18,13 +17,7 @@ var fs = require('fs');
     for (var k in (options || {})) {
       opts[k] = options[k];
     }
-    //Reset everything
-    timezoneJS.timezone.zones = {};
-    timezoneJS.timezone.rules = {};
-    timezoneJS.timezone.loadedZones = {};
-
-    //Set up again
-    timezoneJS.timezone.zoneFileBasePath = 'lib/tz';
+    
     timezoneJS.timezone.transport = function (opts) {
       // No success handler, what's the point?
       if (opts.async) {
@@ -36,12 +29,24 @@ var fs = require('fs');
       }
       return fs.readFileSync(opts.url, 'utf8');
     };
+
     timezoneJS.timezone.loadingScheme = opts.loadingScheme;
-    timezoneJS.timezone.init(opts);
+    if (opts.loadingScheme !== timezoneJS.timezone.loadingSchemes.MANUAL_LOAD) {
+      //Set up again
+      timezoneJS.timezone.zoneFileBasePath = 'lib/tz';
+      timezoneJS.timezone.init(opts);
+    }
+    
     return timezoneJS;
   };
 
   TestUtils.getTimezoneJS = function (options) {
+    //Delete date.js from require cache to force it to reload
+    for (var k in require.cache) {
+      if (k.indexOf('date.js') > -1) {
+        delete require.cache[k];
+      }
+    }
     return init(require('../src/date'), options);
   }
 
