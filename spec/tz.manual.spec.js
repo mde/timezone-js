@@ -16,5 +16,10 @@ describe('TimezoneJS', function () {
     sampleTz = timezoneJS.timezone.getTzInfo(new Date(), 'Asia/Bangkok');
     expect(sampleTz).toBeDefined();
     expect(sampleTz.tzAbbr).toEqual('ICT');
+    dt = new timezoneJS.Date();
+    dt.setTimezone('America/Chicago');
+    expect(dt.getTimezoneAbbreviation()).toMatch(/C(S|D)T/);
+    dt.setTimezone('America/New_York');
+    expect(dt.getTimezoneAbbreviation()).toMatch(/E(S|D)T/);
   });
 });
