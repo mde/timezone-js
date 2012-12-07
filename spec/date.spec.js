@@ -233,4 +233,44 @@ describe('timezoneJS.Date', function () {
     expect(dt.toString()).toEqual('2011-12-31 00:00:00');
     expect(dt.getTime()).toEqual(t);
   });
+
+  it("accepts an optional parameter for month in setUTCFullYear", function() {
+    var date = new timezoneJS.Date(2000, 11, 31, 0, 0, 0, "Etc/UTC");
+    expect(date.getUTCMonth()).toEqual(11);
+    expect(date.getUTCDate()).toEqual(31);
+    date.setUTCFullYear(2012, 1);
+    //Febuary does not have a 31st, thus we should wrap to march
+    expect(date.getUTCMonth()).toEqual(2);
+    expect(date.getUTCDate()).toEqual(2);
+  });
+
+  it("accepts a second optional parameter for date in setUTCFullYear", function() {
+    var date = new timezoneJS.Date(2000, 11, 31, 0, 0, 0, "Etc/UTC");
+    expect(date.getUTCMonth()).toEqual(11);
+    expect(date.getUTCDate()).toEqual(31);
+    date.setUTCFullYear(2012, 1, 1);
+    //Do not wrap to March because we are setting the date as well
+    expect(date.getUTCMonth()).toEqual(1);
+    expect(date.getUTCDate()).toEqual(1);
+  });
+
+  it("accepts an optional parameter for month in setFullYear", function() {
+    var date = new timezoneJS.Date(2000, 11, 31, 0, 0, 0, "America/New_York");
+    expect(date.getMonth()).toEqual(11);
+    expect(date.getDate()).toEqual(31);
+    date.setFullYear(2012, 1);
+    //Febuary does not have a 31st, thus we should wrap to march
+    expect(date.getMonth()).toEqual(2);
+    expect(date.getDate()).toEqual(2);
+  });
+
+  it("accepts a second optional parameter for date in setFullYear", function() {
+    var date = new timezoneJS.Date(2000, 11, 31, 0, 0, 0, "America/New_York");
+    expect(date.getMonth()).toEqual(11);
+    expect(date.getDate()).toEqual(31);
+    date.setFullYear(2012, 1, 1);
+    //Do not wrap to March because we are setting the date as well
+    expect(date.getMonth()).toEqual(1);
+    expect(date.getDate()).toEqual(1);
+  });
 });
