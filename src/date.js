@@ -264,7 +264,12 @@
     },
     setMonth: function (n) { this.setAttribute('month', n); },
     setYear: function (n) { this.setUTCAttribute('year', n); },
-    setHours: function (n) { this.setAttribute('hours', n); },
+    setHours: function (hours, minutes, seconds, milliseconds) {
+      this.setAttribute('hours', hours);
+      if (minutes) { this.setAttribute('minutes', minutes); }
+      if (seconds) { this.setAttribute('seconds', seconds); }
+      if (milliseconds) { this.setAttribute('milliseconds', milliseconds); }
+    },
     setMilliseconds: function (n) { this.setAttribute('milliseconds', n); },
     setMinutes: function (n) { this.setAttribute('minutes', n); },
     setSeconds: function (n) { this.setAttribute('seconds', n); },
@@ -279,7 +284,12 @@
       if (month !== undefined) { this.setUTCAttribute('month', month); }
       if (date !== undefined) { this.setUTCAttribute('date', date); }
     },
-    setUTCHours: function (n) { this.setUTCAttribute('hours', n); },
+    setUTCHours: function (hours, minutes, seconds, milliseconds) {
+      this.setUTCAttribute('hours', hours);
+      if (minutes) { this.setUTCAttribute('minutes', minutes); }
+      if (seconds) { this.setUTCAttribute('seconds', seconds); }
+      if (milliseconds) { this.setUTCAttribute('milliseconds', milliseconds); }
+    },
     setUTCMilliseconds: function (n) { this.setUTCAttribute('milliseconds', n); },
     setUTCMinutes: function (n) { this.setUTCAttribute('minutes', n); },
     setUTCMonth: function (n) { this.setUTCAttribute('month', n); },
