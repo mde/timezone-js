@@ -540,6 +540,13 @@
       var date = typeof dt === 'number' ? new Date(dt) : dt;
       var ruleset = zone[1];
       var basicOffset = zone[0];
+      
+      // If the zone has a DST rule like '1:00', create a rule and return it
+      // instead of looking it up in the parsed rules
+      var staticDstMatch = ruleset.match(/^([0-9]):([0-9][0-9])$/);
+      if (staticDstMatch) {
+      	return [-1000000,'max','-','Jan',1,parseTimeString('0:00'),parseInt(staticDstMatch[1]) * 60 + parseInt(staticDstMatch[2]), '-'];
+      }
 
       //Convert a date to UTC. Depending on the 'type' parameter, the date
       // parameter may be:

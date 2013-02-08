@@ -315,4 +315,10 @@ describe('timezoneJS.Date', function () {
     date.setHours(0, 1, 2, 3);
     expect(date.getMilliseconds()).toEqual(3);
   });
+  
+  it("Handles static dst offsets in Zones like '1:00' instead of DST rule references.", function(){
+    var date = new timezoneJS.Date(Date.UTC(2012, 2, 1, 0, 0, 0, 0), "Pacific/Apia");
+    expect(date.getTimezoneOffset()).toBe(-840);
+    expect(date.toString("yyyy-MM-dd HH:mm:ss Z")).toBe("2012-03-01 14:00:00 WSDT");
+  });
 });
