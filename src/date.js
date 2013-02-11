@@ -213,7 +213,7 @@
     getDay: function () { return this._day; },
     getFullYear: function () { return this.year; },
     getMonth: function () { return this.month; },
-    getYear: function () { return this.year; },
+    getYear: function () { return this.year - 1900; },
     getHours: function () { return this.hours; },
     getMilliseconds: function () { return this.milliseconds; },
     getMinutes: function () { return this.minutes; },
@@ -255,45 +255,93 @@
       dt.setUTCMinutes(dt.getUTCMinutes() + this.getTimezoneOffset());
       return dt;
     },
-    setDate: function (n) { this.setAttribute('date', n); },
+    setDate: function (date) {
+      this.setAttribute('date', date);
+      return this.getTime();
+    },
     setFullYear: function (year, month, date) {
       if (date !== undefined) { this.setAttribute('date', 1); }
       this.setAttribute('year', year);
       if (month !== undefined) { this.setAttribute('month', month); }
       if (date !== undefined) { this.setAttribute('date', date); }
+      return this.getTime();
     },
-    setMonth: function (n) { this.setAttribute('month', n); },
-    setYear: function (n) { this.setUTCAttribute('year', n); },
+    setMonth: function (month, date) {
+      this.setAttribute('month', month);
+      if (date !== undefined) { this.setAttribute('date', date); }
+      return this.getTime();
+    },
+    setYear: function (year) {
+      year = Number(year);
+      if (0 <= year && year <= 99) { year += 1900; }
+      this.setUTCAttribute('year', year);
+      return this.getTime();
+    },
     setHours: function (hours, minutes, seconds, milliseconds) {
       this.setAttribute('hours', hours);
-      if (minutes) { this.setAttribute('minutes', minutes); }
-      if (seconds) { this.setAttribute('seconds', seconds); }
-      if (milliseconds) { this.setAttribute('milliseconds', milliseconds); }
+      if (minutes !== undefined) { this.setAttribute('minutes', minutes); }
+      if (seconds !== undefined) { this.setAttribute('seconds', seconds); }
+      if (milliseconds !== undefined) { this.setAttribute('milliseconds', milliseconds); }
+      return this.getTime();
     },
-    setMilliseconds: function (n) { this.setAttribute('milliseconds', n); },
-    setMinutes: function (n) { this.setAttribute('minutes', n); },
-    setSeconds: function (n) { this.setAttribute('seconds', n); },
+    setMinutes: function (minutes, seconds, milliseconds) {
+      this.setAttribute('minutes', minutes);
+      if (seconds !== undefined) { this.setAttribute('seconds', seconds); }
+      if (milliseconds !== undefined) { this.setAttribute('milliseconds', milliseconds); }
+      return this.getTime();
+    },
+    setSeconds: function (seconds, milliseconds) {
+      this.setAttribute('seconds', seconds);
+      if (milliseconds !== undefined) { this.setAttribute('milliseconds', milliseconds); }
+      return this.getTime();
+    },
+    setMilliseconds: function (milliseconds) {
+      this.setAttribute('milliseconds', milliseconds);
+      return this.getTime();
+    },
     setTime: function (n) {
       if (isNaN(n)) { throw new Error('Units must be a number.'); }
       this.setFromTimeProxy(n, this.timezone);
+      return this.getTime();
     },
-    setUTCDate: function (n) { this.setUTCAttribute('date', n); },
     setUTCFullYear: function (year, month, date) {
       if (date !== undefined) { this.setUTCAttribute('date', 1); }
       this.setUTCAttribute('year', year);
       if (month !== undefined) { this.setUTCAttribute('month', month); }
       if (date !== undefined) { this.setUTCAttribute('date', date); }
+      return this.getTime();
+    },
+    setUTCMonth: function (month, date) {
+      this.setUTCAttribute('month', month);
+      if (date !== undefined) { this.setUTCAttribute('date', date); }
+      return this.getTime();
+    },
+    setUTCDate: function (date) {
+      this.setUTCAttribute('date', date);
+      return this.getTime();
     },
     setUTCHours: function (hours, minutes, seconds, milliseconds) {
       this.setUTCAttribute('hours', hours);
-      if (minutes) { this.setUTCAttribute('minutes', minutes); }
-      if (seconds) { this.setUTCAttribute('seconds', seconds); }
-      if (milliseconds) { this.setUTCAttribute('milliseconds', milliseconds); }
+      if (minutes !== undefined) { this.setUTCAttribute('minutes', minutes); }
+      if (seconds !== undefined) { this.setUTCAttribute('seconds', seconds); }
+      if (milliseconds !== undefined) { this.setUTCAttribute('milliseconds', milliseconds); }
+      return this.getTime();
     },
-    setUTCMilliseconds: function (n) { this.setUTCAttribute('milliseconds', n); },
-    setUTCMinutes: function (n) { this.setUTCAttribute('minutes', n); },
-    setUTCMonth: function (n) { this.setUTCAttribute('month', n); },
-    setUTCSeconds: function (n) { this.setUTCAttribute('seconds', n); },
+    setUTCMinutes: function (minutes, seconds, milliseconds) {
+      this.setUTCAttribute('minutes', minutes);
+      if (seconds !== undefined) { this.setUTCAttribute('seconds', seconds); }
+      if (milliseconds !== undefined) { this.setUTCAttribute('milliseconds', milliseconds); }
+      return this.getTime();
+    },
+    setUTCSeconds: function (seconds, milliseconds) {
+      this.setUTCAttribute('seconds', seconds);
+      if (milliseconds !== undefined) { this.setUTCAttribute('milliseconds', milliseconds); }
+      return this.getTime();
+    },
+    setUTCMilliseconds: function (milliseconds) {
+      this.setUTCAttribute('milliseconds', milliseconds);
+      return this.getTime();
+    },
     setFromDateObjProxy: function (dt) {
       this.year = dt.getFullYear();
       this.month = dt.getMonth();
@@ -302,7 +350,7 @@
       this.minutes = dt.getMinutes();
       this.seconds = dt.getSeconds();
       this.milliseconds = dt.getMilliseconds();
-      this._day =  dt.getDay();
+      this._day = dt.getDay();
       this._dateProxy = dt;
       this._timeProxy = Date.UTC(this.year, this.month, this.date, this.hours, this.minutes, this.seconds, this.milliseconds);
       this._useCache = false;
@@ -540,7 +588,7 @@
       var date = typeof dt === 'number' ? new Date(dt) : dt;
       var ruleset = zone[1];
       var basicOffset = zone[0];
-      
+
       // If the zone has a DST rule like '1:00', create a rule and return it
       // instead of looking it up in the parsed rules
       var staticDstMatch = ruleset.match(/^([0-9]):([0-9][0-9])$/);
