@@ -35,7 +35,7 @@
 (function () {
   // Standard initialization stuff to make sure the library is
   // usable on both client and server (node) side.
-
+  "use strict";
   var root = this;
 
   var timezoneJS;
@@ -53,6 +53,7 @@
   // `timezoneJS.timezone.transport` to a `function`. More details will follow
   var $ = root.$ || root.jQuery || root.Zepto
     , fleegix = root.fleegix
+    , _arrIndexOf
   // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
     , DAYS = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     , MONTHS = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -73,14 +74,38 @@
 
 
   //Handle array indexOf in IE
-  if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function (el) {
-      for (var i = 0; i < this.length; i++ ) {
-        if (el === this[i]) return i;
-      }
+  //From https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/indexOf
+  //Extending Array prototype causes IE to iterate thru extra element
+  _arrIndexOf = Array.prototype.indexOf || function (el) {
+    if (this === null) {
+      throw new TypeError();
+    }
+    var t = Object(this);
+    var len = t.length >>> 0;
+    if (len === 0) {
       return -1;
-    };
-  }
+    }
+    var n = 0;
+    if (arguments.length > 1) {
+      n = Number(arguments[1]);
+      if (n != n) { // shortcut for verifying if it's NaN
+        n = 0;
+      } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
+        n = (n > 0 || -1) * Math.floor(Math.abs(n));
+      }
+    }
+    if (n >= len) {
+      return -1;
+    }
+    var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+    for (; k < len; k++) {
+      if (k in t && t[k] === el) {
+        return k;
+      }
+    }
+    return -1;
+  };
+  
 
   // Format a number to the length = digits. For ex:
   //
@@ -577,7 +602,7 @@
     }
     function getBasicOffset(time) {
       var off = parseTimeString(time)
-        , adj = time.indexOf('-') === 0 ? -1 : 1;
+        , adj = _arrIndexOf.call(time, '-') === 0 ? -1 : 1;
       off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
       return off/60/1000;
     }
@@ -756,11 +781,11 @@
       applicableRules.sort(compareDates);
 
       //If there are not enough past DST rules...
-      if (applicableRules.indexOf(date) < 2) {
+      if (_arrIndexOf.call(applicableRules, date) < 2) {
         applicableRules = applicableRules.concat(findApplicableRules(year-1, _this.rules[ruleset]));
         applicableRules.sort(compareDates);
       }
-      var pinpoint = applicableRules.indexOf(date);
+      var pinpoint = _arrIndexOf.call(applicableRules, date);
       if (pinpoint > 1 && compareDates(date, applicableRules[pinpoint-1], applicableRules[pinpoint-2][1]) < 0) {
         //The previous rule does not really apply, take the one before that.
         return applicableRules[pinpoint - 2][1];
