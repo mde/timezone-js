@@ -79,7 +79,7 @@
         if (el === this[i]) return i;
       }
       return -1;
-    }
+    };
   }
 
   // Format a number to the length = digits. For ex:
@@ -248,7 +248,7 @@
       }
       this._tzInfo = res;
       this._useCache = true;
-      return res
+      return res;
     },
     getUTCDateProxy: function () {
       var dt = new Date(this._timeProxy);
@@ -802,7 +802,7 @@
       return res;
     }
 
-    this.zoneFileBasePath;
+    this.zoneFileBasePath = null;
     this.zoneFiles = ['africa', 'antarctica', 'asia', 'australasia', 'backward', 'etcetera', 'europe', 'northamerica', 'pacificnew', 'southamerica'];
     this.loadingSchemes = {
       PRELOAD_ALL: 'preloadAll',
@@ -816,9 +816,9 @@
 
     this.init = function (o) {
       var opts = { async: true }
-        , def = this.defaultZoneFile = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
+        , def = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
           ? this.zoneFiles
-          : 'northamerica'
+          : (this.defaultZoneFile || 'northamerica')
         , done = 0
         , callbackFn;
       //Override default with any passed-in opts

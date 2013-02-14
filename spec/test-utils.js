@@ -31,6 +31,7 @@ var fs = require('fs');
     };
 
     timezoneJS.timezone.loadingScheme = opts.loadingScheme;
+    timezoneJS.timezone.defaultZoneFile = opts.defaultZoneFile;
     if (opts.loadingScheme !== timezoneJS.timezone.loadingSchemes.MANUAL_LOAD) {
       //Set up again
       timezoneJS.timezone.zoneFileBasePath = 'lib/tz';
@@ -48,7 +49,7 @@ var fs = require('fs');
       }
     }
     return init(require('../src/date'), options);
-  }
+  };
 
   TestUtils.parseISO = function (timestring) {
     var pat = '^(?:([+-]?[0-9]{4,})(?:-([0-9]{2})(?:-([0-9]{2}))?)?)?' +
