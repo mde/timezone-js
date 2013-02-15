@@ -18,5 +18,6 @@ describe('TimezoneJS', function () {
     sampleTz = timezoneJS.timezone.getTzInfo(new Date(), 'Asia/Bangkok');
     expect(sampleTz).toBeDefined();
     expect(sampleTz.tzAbbr).toEqual('ICT');
+    expect(new timezoneJS.Date('America/New_York').getTimezoneOffset() > 0).toBe(true);
   });
 });
