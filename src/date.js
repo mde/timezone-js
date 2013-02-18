@@ -42,7 +42,7 @@
   if (typeof exports !== 'undefined') {
     timezoneJS = exports;
   } else {
-    timezoneJS = root.timezoneJS = {};
+    timezoneJS = root.timezoneJS = root.TzJs = {};
   }
 
   timezoneJS.VERSION = '0.4.4';
@@ -51,9 +51,10 @@
   // This can be jQuery, Zepto or fleegix.
   // You can also specify your own transport mechanism by declaring
   // `timezoneJS.timezone.transport` to a `function`. More details will follow
-  var $ = root.$ || root.jQuery || root.Zepto
+  var $ = root.$ || root.jQuery || root.Zepto || root.Ext
     , fleegix = root.fleegix
-    , _arrIndexOf
+    , Ext = root.Ext
+	, _arrIndexOf
   // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
     , DAYS = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     , MONTHS = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -139,12 +140,12 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
-    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!$ || typeof $.ajax === 'undefined')) {
-      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
+    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!$ || typeof $.ajax === 'undefined') && (!Ext || typeof Ext.Ajax === 'undefined' || typeof Ext.Ajax.request === 'undefined')) {
+      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, Ext Ajax module, or define your own transport mechanism for downloading zone files.');
     }
     if (!opts) return;
     if (!opts.url) throw new Error ('URL must be specified');
-    if (!('async' in opts)) opts.async = true;
+    if (!('async' in opts)) opts.async = true || (Ext && Ext === $);
     if (!opts.async) {
       return fleegix && fleegix.xhr
       ? fleegix.xhr.doReq({ url: opts.url, async: false })
@@ -157,13 +158,20 @@
       handleSuccess : opts.success,
       handleErr : opts.error
     })
-    : $.ajax({
-      url : opts.url,
-      dataType: 'text',
-      method : 'GET',
-      error : opts.error,
-      success : opts.success
-    });
+    : Ext && Ext === $
+      ? Ext.Ajax.request({
+      	url: opts.url,
+      	scope: this,
+      	failure: opts.failure,
+      	success: opts.success
+      })
+	  : $.ajax({
+	      url : opts.url,
+	      dataType: 'text',
+	      method : 'GET',
+	      error : opts.error,
+	      success : opts.success
+	    });
   };
 
   // Constructor, which is similar to that of the native Date object itself
@@ -503,20 +511,22 @@
   };
 
 
-  timezoneJS.timezone = new function () {
+  timezoneJS.timezone = timezoneJS.tz = new function () {
     var _this = this
       , regionMap = {'Etc':'etcetera','EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
       , regionExceptions = {'Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica'};
     function invalidTZError(t) { throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
-      return !opts || !opts.async
+      return (!opts || !opts.async) && (!Ext || Ext !== $)
       ? _this.parseZones(_this.transport({ url : url, async : false }))
       : _this.transport({
         async: true,
         url : url,
         success : function (str) {
-          if (_this.parseZones(str) && typeof opts.callback === 'function') {
+          var result = Ext && Ext === $ ? str.responseText : str;
+
+          if (_this.parseZones(result) && opts && typeof opts.callback === 'function') {
             opts.callback();
           }
           return true;
@@ -827,7 +837,7 @@
       return res;
     }
 
-    this.zoneFileBasePath = null;
+    this.zoneFileBasePath;
     this.zoneFiles = ['africa', 'antarctica', 'asia', 'australasia', 'backward', 'etcetera', 'europe', 'northamerica', 'pacificnew', 'southamerica'];
     this.loadingSchemes = {
       PRELOAD_ALL: 'preloadAll',
@@ -843,7 +853,9 @@
       var opts = { async: true }
         , def = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
           ? this.zoneFiles
-          : (this.defaultZoneFile || 'northamerica')
+          : this.loadingScheme === this.loadingSchemes.LAZY_LOAD
+          	? (typeof this.defaultZoneFile === 'array' || typeof this.defaultZoneFile === 'string' ? this.defaultZoneFile : 'northamerica')
+          	: def = [] // MANUAL_LOAD
         , done = 0
         , callbackFn;
       //Override default with any passed-in opts
@@ -989,5 +1001,12 @@
       var abbr = getAbbreviation(z, rule);
       return { tzOffset: off, tzAbbr: abbr };
     };
+    
+    this.getRegionForTimezone = getRegionForTimezone;
+    
+    this.loadZoneFileForTimezone = function (tz, opts) {
+    	return this.loadZoneFile(this.getRegionForTimezone(tz), opts);
+    };
+
   };
 }).call(this);
