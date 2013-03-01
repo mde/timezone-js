@@ -6,3 +6,4 @@ node_modules
 docs
 .c9*
 .settings
+*.local.spec.js

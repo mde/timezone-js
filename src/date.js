@@ -32,6 +32,8 @@
  * Peter Bergström (pbergstr@mac.com)
  * Long Ho
  */
+
+ /*jslint laxcomma:true, laxbreak:true, expr:true*/
 (function () {
   // Standard initialization stuff to make sure the library is
   // usable on both client and server (node) side.
@@ -53,8 +55,7 @@
   // `timezoneJS.timezone.transport` to a `function`. More details will follow
   var $ = root.$ || root.jQuery || root.Zepto
     , fleegix = root.fleegix
-    , _arrIndexOf
-  // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
+    // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
     , DAYS = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     , MONTHS = timezoneJS.Months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     , SHORT_MONTHS = {}
@@ -76,7 +77,7 @@
   //Handle array indexOf in IE
   //From https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/indexOf
   //Extending Array prototype causes IE to iterate thru extra element
-  _arrIndexOf = Array.prototype.indexOf || function (el) {
+  var _arrIndexOf = Array.prototype.indexOf || function (el) {
     if (this === null) {
       throw new TypeError();
     }
@@ -105,7 +106,6 @@
     }
     return -1;
   };
-  
 
   // Format a number to the length = digits. For ex:
   //
@@ -516,10 +516,7 @@
         async: true,
         url : url,
         success : function (str) {
-          if (_this.parseZones(str) && typeof opts.callback === 'function') {
-            opts.callback();
-          }
-          return true;
+          return _this.parseZones(str) && typeof opts.callback === 'function' && opts.callback();
         },
         error : function () {
           throw new Error('Error retrieving "' + url + '" zoneinfo files');
@@ -547,27 +544,28 @@
       }
       invalidTZError(tz);
     }
+    //str has format hh:mm, can be negative
     function parseTimeString(str) {
       var pat = /(\d+)(?::0*(\d*))?(?::0*(\d*))?([wsugz])?$/;
       var hms = str.match(pat);
       hms[1] = parseInt(hms[1], 10);
       hms[2] = hms[2] ? parseInt(hms[2], 10) : 0;
       hms[3] = hms[3] ? parseInt(hms[3], 10) : 0;
-
-      return hms;
+      return hms.slice(1, 5);
     }
+    //z is something like `[ '-3:44:40', '-', 'LMT', '1911', 'May', '15', '' ]` or `[ '-5:00', '-', 'EST', '1974', 'Apr', '28', '2:00' ]`
     function processZone(z) {
       if (!z[3]) { return; }
-      var yea = parseInt(z[3], 10);
-      var mon = 11;
-      var dat = 31;
+      var yea = parseInt(z[3], 10)
+        , mon = 11
+        , dat = 31;
+      //If month is there
       if (z[4]) {
         mon = SHORT_MONTHS[z[4].substr(0, 3)];
         dat = parseInt(z[5], 10) || 1;
       }
-      var string = z[6] ? z[6] : '00:00:00'
-        , t = parseTimeString(string);
-      return [yea, mon, dat, t[1], t[2], t[3]];
+      var t = z[6] ? parseTimeString(z[6]) : [0, 0, 0];
+      return [yea, mon, dat, t[0], t[1], t[2]];
     }
     function getZone(dt, tz) {
       var utcMillis = typeof dt === 'number' ? dt : new Date(dt).getTime();
@@ -603,7 +601,7 @@
     function getBasicOffset(time) {
       var off = parseTimeString(time)
         , adj = time.charAt(0) === '-' ? -1 : 1;
-      off = adj * (((off[1] * 60 + off[2]) * 60 + off[3]) * 1000);
+      off = adj * (((off[0] * 60 + off[1]) * 60 + off[2]) * 1000);
       return off/60/1000;
     }
 
@@ -618,7 +616,7 @@
       // instead of looking it up in the parsed rules
       var staticDstMatch = ruleset.match(/^([0-9]):([0-9][0-9])$/);
       if (staticDstMatch) {
-      	return [-1000000,'max','-','Jan',1,parseTimeString('0:00'),parseInt(staticDstMatch[1]) * 60 + parseInt(staticDstMatch[2]), '-'];
+        return [-1000000, 'max', '-', 'Jan', 1, [0, 0, 0], parseInt(staticDstMatch[1],10) * 60 + parseInt(staticDstMatch[2], 10), '-'];
       }
 
       //Convert a date to UTC. Depending on the 'type' parameter, the date
@@ -628,7 +626,7 @@
       //
       // - `s`: standard time (adjust for time zone offset but not for DST)
       //
-    // - `w`: wall clock time (adjust for both time zone and DST offset).
+      // - `w`: wall clock time (adjust for both time zone and DST offset).
       //
       // DST adjustment is done using the rule given as third argument.
       var convertDateToUTC = function (date, type, rule) {
@@ -641,7 +639,7 @@
         } else if (type === 'w' || !type) { // Wall Clock Time
           offset = getAdjustedOffset(basicOffset, rule);
         } else {
-          throw("unknown type " + type);
+          throw new Error("unknown type " + type);
         }
         offset *= 60 * 1000; // to millis
 
@@ -679,7 +677,7 @@
         else {
           //If we have a specific date, use that!
           if (!isNaN(rule[4])) {
-            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4], hms[1], hms[2], hms[3], 0));
+            effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4], hms[0], hms[1], hms[2], 0));
           }
           //Let's hunt for the date.
           else {
@@ -688,14 +686,14 @@
             //Example: `lastThu`
             if (rule[4].substr(0, 4) === "last") {
               // Start at the last day of the month and work backward.
-              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[1] - 24, hms[2], hms[3], 0));
+              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[0] - 24, hms[1], hms[2], 0));
               targetDay = SHORT_DAYS[rule[4].substr(4, 3)];
               operator = "<=";
             }
             //Example: `Sun>=15`
             else {
               //Start at the specified date.
-              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4].substr(5), hms[1], hms[2], hms[3], 0));
+              effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]], rule[4].substr(5), hms[0], hms[1], hms[2], 0));
               targetDay = SHORT_DAYS[rule[4].substr(0, 3)];
               operator = rule[4].substr(3, 2);
             }
@@ -716,7 +714,7 @@
         //If previous rule is given, correct for the fact that the starting time of the current
         // rule may be specified in local time.
         if (prevRule) {
-          effectiveDate = convertDateToUTC(effectiveDate, hms[4], prevRule);
+          effectiveDate = convertDateToUTC(effectiveDate, hms[3], prevRule);
         }
         return effectiveDate;
       };
