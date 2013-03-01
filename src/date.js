@@ -382,8 +382,7 @@
     },
     setFromTimeProxy: function (utcMillis, tz) {
       var dt = new Date(utcMillis);
-      var tzOffset;
-      tzOffset = tz ? timezoneJS.timezone.getTzInfo(dt, tz).tzOffset : dt.getTimezoneOffset();
+      var tzOffset = tz ? timezoneJS.timezone.getTzInfo(utcMillis, tz, true).tzOffset : dt.getTimezoneOffset();
       dt.setTime(utcMillis + (dt.getTimezoneOffset() - tzOffset) * 60000);
       this.setFromDateObjProxy(dt);
     },
@@ -604,6 +603,9 @@
       off = adj * (((off[0] * 60 + off[1]) * 60 + off[2]) * 1000);
       return off/60/1000;
     }
+    function getAdjustedOffset(off, min) {
+      return -Math.ceil(min - off);
+    }
 
     //if isUTC is true, date is given in UTC, otherwise it's given
     // in local time (ie. date.getUTC*() returns local time components)
@@ -637,7 +639,7 @@
         } else if (type === 's') { // Standard Time
           offset = basicOffset;
         } else if (type === 'w' || !type) { // Wall Clock Time
-          offset = getAdjustedOffset(basicOffset, rule);
+          offset = getAdjustedOffset(basicOffset, rule[6]);
         } else {
           throw new Error("unknown type " + type);
         }
@@ -797,11 +799,7 @@
       }
       return applicableRules[pinpoint - 1][1];
     }
-    function getAdjustedOffset(off, rule) {
-      return -Math.ceil(rule[6] - off);
-    }
     function getAbbreviation(zone, rule) {
-      var res;
       var base = zone[2];
       if (base.indexOf('%s') > -1) {
         var repl;
@@ -814,15 +812,12 @@
         else {
           repl = 'S';
         }
-        res = base.replace('%s', repl);
-      }
-      else if (base.indexOf('/') > -1) {
+        return base.replace('%s', repl);
+      } else if (base.indexOf('/') > -1) {
         //Chose one of two alternative strings.
-        res = base.split("/", 2)[rule[6] ? 1 : 0];
-      } else {
-        res = base;
+        return base.split("/", 2)[rule[6] ? 1 : 0];
       }
-      return res;
+      return base;
     }
 
     this.zoneFileBasePath = null;
@@ -982,7 +977,7 @@
       //See if the offset needs adjustment.
       var rule = getRule(dt, z, isUTC);
       if (rule) {
-        off = getAdjustedOffset(off, rule);
+        off = getAdjustedOffset(off, rule[6]);
       }
       var abbr = getAbbreviation(z, rule);
       return { tzOffset: off, tzAbbr: abbr };
