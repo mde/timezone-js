@@ -139,7 +139,7 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
-    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!$ || typeof $.ajax === 'undefined')) {
+    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!jQuery || typeof jQuery.ajax === 'undefined')) {
       throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
     }
     if (!opts) return;
@@ -148,7 +148,7 @@
     if (!opts.async) {
       return fleegix && fleegix.xhr
       ? fleegix.xhr.doReq({ url: opts.url, async: false })
-      : $.ajax({ url : opts.url, async : false }).responseText;
+      : jQuery.ajax({ url : opts.url, async : false }).responseText;
     }
     return fleegix && fleegix.xhr
     ? fleegix.xhr.send({
@@ -157,7 +157,7 @@
       handleSuccess : opts.success,
       handleErr : opts.error
     })
-    : $.ajax({
+    : jQuery.ajax({
       url : opts.url,
       dataType: 'text',
       method : 'GET',
