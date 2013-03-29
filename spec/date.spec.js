@@ -471,6 +471,19 @@ describe('timezoneJS.Date', function () {
     }
   });
 
+  xit('Represents hours in 12 hour format by k side effect', function () {
+    for (var i = 0; i < 24; i ++) {
+      var ampm  =  i >= 12 ? "PM" : "AM";
+      var hour = (i % 12);
+      hour = (hour === 0) ? '12' : hour.toString();
+      zhour = hour > 9 ? hour.toString() : '0' + hour;
+
+      var time_value = new timezoneJS.Date(2013, 1, 1, i, 0, 0, 0, "America/Chicago");
+      expect(time_value.toString("H k")).toEqual(hour + " " + ampm);
+      expect(time_value.toString("HH k")).toEqual(zhour + " " + ampm);
+    }
+  });
+
   it('Represents hours in single digit 12 hour format', function () {
     for (var i = 0; i < 24; i ++) {
       var ampm  =  i >= 12 ? "PM" : "AM";
