@@ -463,4 +463,22 @@ describe('timezoneJS.Date', function () {
     date.setYear(2003);
     expect(date.getFullYear()).toEqual(2003);
   });
+
+  it('Represents hours in 24 hour format', function () {
+    for (var i = 0; i < 24; i ++) {
+      var time_value = new timezoneJS.Date(2013, 1, 1, i, 0, 0, 0, "America/Chicago");
+      expect(time_value.toString("H")).toEqual(i.toString());
+    }
+  });
+
+  it('Represents hours in single digit 12 hour format', function () {
+    for (var i = 0; i < 24; i ++) {
+      var ampm  =  i >= 12 ? "PM" : "AM";
+      var hour = (i % 12);
+      hour = (hour === 0) ? 12 : hour;
+
+      var time_value = new timezoneJS.Date(2013, 1, 1, i, 0, 0, 0, "America/Chicago");
+      expect(time_value.toString("h k")).toEqual(hour.toString() + " " + ampm);
+    }
+  });
 });
