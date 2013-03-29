@@ -475,10 +475,12 @@ describe('timezoneJS.Date', function () {
     for (var i = 0; i < 24; i ++) {
       var ampm  =  i >= 12 ? "PM" : "AM";
       var hour = (i % 12);
-      hour = (hour === 0) ? 12 : hour;
+      hour = (hour === 0) ? '12' : hour.toString();
+      zhour = hour > 9 ? hour.toString() : '0' + hour;
 
       var time_value = new timezoneJS.Date(2013, 1, 1, i, 0, 0, 0, "America/Chicago");
-      expect(time_value.toString("h k")).toEqual(hour.toString() + " " + ampm);
+      expect(time_value.toString("h k")).toEqual(hour + " " + ampm);
+      expect(time_value.toString("hh k")).toEqual(zhour + " " + ampm);
     }
   });
 });
