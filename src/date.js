@@ -473,6 +473,8 @@
       })
       // `H`: hour
       .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
+      // 'h': 12 hour format
+      .replace(/h+/g, function (token) { return _fixWidth( ((hours%12) === 0) ? 12 : (hours % 12), token.length); })
       // `E`: day
       .replace(/E+/g, function (token) { return DAYS[_this.getDay()].substring(0, token.length); })
       // `Z`: timezone abbreviation
