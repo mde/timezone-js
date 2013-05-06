@@ -746,7 +746,7 @@
 
       var compareDates = function (a, b, prev) {
         var year, rule;
-        if (a.constructor !== Date) {
+        if (!(a instanceof Date)) {
           year = a[0];
           rule = a[1];
           a = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule])
@@ -755,7 +755,7 @@
         } else if (prev) {
           a = convertDateToUTC(a, isUTC ? 'u' : 'w', prev);
         }
-        if (b.constructor !== Date) {
+        if (!(b instanceof Date)) {
           year = b[0];
           rule = b[1];
           b = (!prev && EXACT_DATE_TIME[year] && EXACT_DATE_TIME[year][rule]) ? EXACT_DATE_TIME[year][rule]
