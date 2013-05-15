@@ -7,6 +7,11 @@ describe('timezoneJS.Date', function () {
     expect(date.toString()).toMatch(/[\d]{4}(-[\d]{2}){2} ([\d]{2}:){2}[\d]{2}/);
   });
 
+  it('should have handled March correctly (not replacing h) when initialized', function () {
+    var date = new timezoneJS.Date(2011, 2, 2, 11, 1, 1, 'Etc/UTC');
+    expect(date.toString('MMMM')).toEqual('March');
+  });
+
   it('should format string correctly in toISOString', function () {
     var date = new timezoneJS.Date();
     expect(date.toISOString()).toMatch(/[\d]{4}(-[\d]{2}){2}T([\d]{2}:){2}[\d]{2}.[\d]{3}/);
