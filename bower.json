@@ -1,0 +1,10 @@
+{
+  "name": "timezone-js",
+  "version": "0.4.4",
+  "main": "src/date.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ]
+}
