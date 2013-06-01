@@ -17,14 +17,41 @@
  # This is a sample script for stripping the copious comments
  # from Olson timezone data files.
  #
+def clean_file(file_path, target_path=false)
+  t = File.read(file_path)
+  t.gsub!(/^#.*\n/, '')
+  t.gsub!(/^\n/, '')
+  if target_path
+    File.open(target_path, 'w') do |targ|
+      targ.puts t
+    end
+  else
+    print t
+  end
+end
+
+
 if ARGV.length == 0
   print "Usage: strip_comments.rb /path/to/input/file\n"
+  print "- puts results into standart output (console) \n"
+  print "Use strip_comments.rb /path/to/input/file | /path/to/input/result_file to fill other file \n\n"
+  
+  print "Convert all tz files in folder: strip_comments.rb /path/to/folder\n"
+  print "- will get all files in folder without extension and creates \"input_file_name.tz\" files filled clean content "
+  print "in same folder\n "
   exit
 else
   path = ARGV[0]
 end
 
-t = File.read(path)
-t.gsub!(/^#.*\n/, '')
-t.gsub!(/^\n/, '')
-print t
+if File::directory?(path)
+  Dir.foreach(path) do |entry|
+    unless entry =~ /\./
+      fn = File::join(path, entry)
+      clean_file(fn, "#{fn}.tz")
+    end
+  end
+else
+  clean_file(path)
+end
+
