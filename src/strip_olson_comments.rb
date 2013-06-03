@@ -33,9 +33,8 @@ end
 
 if ARGV.length == 0
   print "Usage: strip_comments.rb /path/to/input/file\n"
-  print "- puts results into standart output (console) \n"
+  print "- puts results into standard output (console) \n"
   print "Use strip_comments.rb /path/to/input/file | /path/to/input/result_file to fill other file \n\n"
-  
   print "Convert all tz files in folder: strip_comments.rb /path/to/folder\n"
   print "- will get all files in folder without extension and creates \"input_file_name.tz\" files filled clean content "
   print "in same folder\n "
