@@ -51,6 +51,23 @@ If you use `timezoneJS.Date` with `Fleegix.js`, there's nothing else you need to
 
 ## Usage
 
+The `timezoneJS.Date` constructor is compatible to the normal JavaScript Date constructor, but additional allows to pass an optional `tz` (timezone). In the following cases the passed date/time is unambiguous:
+
+    timezoneJS.Date(millis, [tz])
+    timezoneJS.Date(Date, [tz])
+    timezoneJS.Date(dt_str_tz, [tz])
+
+`dt_str_tz` is a date string containing timezone information, i.e. containing 'Z', 'T' or a timezone offset matching the regular expression /[+-][0-9]{4}/ (e.g. '+0200'). The [one-stop shop for cross-browser JavaScript Date parsing behavior](http://dygraphs.com/date-formats.html) provides detailed information about JavaScript date formats.
+
+In the following cases the date is assumed to be a date in timezone `tz` or a locale date if `tz` is not provided:
+
+    timezoneJS.Date(year, mon, day, [hour], [min], [second], [tz])
+    timezoneJS.Date(dt_str, [tz])
+
+`dt_str_tz` is a date string containing no timezone information.
+
+### Examples
+
 Create a `timezoneJS.Date` the same way as a normal JavaScript Date, but append a timezone parameter on the end:
 
 	var dt = new timezoneJS.Date('10/31/2008', 'America/New_York');

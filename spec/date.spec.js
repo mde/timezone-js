@@ -157,6 +157,18 @@ describe('timezoneJS.Date', function () {
 
   });
 
+  it('should take in String (other format) and Etc/UTC as constructor', function () {
+    var dt = new timezoneJS.Date('2013/06/18 10:37', 'Etc/UTC');
+
+    expect(dt.toString('yyyy/MM/dd HH:mm', 'America/Los_Angeles')).toEqual('2013/06/18 03:37');
+  });
+
+  it('should take in String (other format) and Europe/Athens as constructor', function () {
+    var dt = new timezoneJS.Date('2013/06/18 10:37', 'Europe/Athens');
+
+    expect(dt.toString('yyyy/MM/dd HH:mm', 'America/Los_Angeles')).toEqual('2013/06/18 00:37');
+  });
+
   it('should take in String as constructor', function () {
     var dtA = new Date()
     , dt = new timezoneJS.Date(dtA.toJSON());
