@@ -195,18 +195,26 @@
     if (typeof args[args.length - 1] === 'string' && TZ_REGEXP.test(args[args.length - 1])) {
       tz = args.pop();
     }
+    var is_dt_local = false;
     switch (args.length) {
       case 0:
         dt = new Date();
         break;
       case 1:
         dt = new Date(args[0]);
+        // Date strings are local if they do not contain 'Z', 'T' or timezone offsets like '+0200'
+        //  - more info below
+        if (typeof args[0] == 'string' && args[0].search(/[+-][0-9]{4}/) == -1
+                && args[0].search(/Z/) == -1 && args[0].search(/T/) == -1) {
+            is_dt_local = true;
+        }
         break;
       default:
         for (var i = 0; i < 7; i++) {
           arr[i] = args[i] || 0;
         }
         dt = new Date(arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]);
+        is_dt_local = true;
         break;
     }
 
@@ -221,11 +229,22 @@
     this.seconds = 0;
     this.milliseconds = 0;
     this.timezone = tz || null;
-    //Tricky part:
-    // For the cases where there are 1/2 arguments: `timezoneJS.Date(millis, [tz])` and `timezoneJS.Date(Date, [tz])`. The
-    // Date `dt` created should be in UTC. Thus the way I detect such cases is to determine if `arr` is not populated & `tz`
-    // is specified. Because if `tz` is not specified, `dt` can be in local time.
-    if (arr.length) {
+    // Tricky part:
+    // The date is either given as unambiguous UTC date or otherwise the date is assumed
+    // to be a date in timezone `tz` or a locale date if `tz` is not provided. Thus, to
+    // determine how to use `dt` we distinguish between the following cases:
+    //  - UTC   (is_dt_local = false)
+    //    `timezoneJS.Date(millis, [tz])`
+    //    `timezoneJS.Date(Date, [tz])`
+    //    `timezoneJS.Date(dt_str_tz, [tz])`
+    //  - local/timezone `tz`   (is_dt_local = true)
+    //    `timezoneJS.Date(year, mon, day, [hour], [min], [second], [tz])`
+    //    `timezoneJS.Date(dt_str, [tz])`
+    //
+    // `dt_str_tz` is a date string containing timezone information, i.e. containing 'Z', 'T' or
+    // /[+-][0-9]{4}/ (e.g. '+0200'), while `dt_str` is a string which does not contain 
+    // timezone information. See: http://dygraphs.com/date-formats.html
+    if (is_dt_local) {
        this.setFromDateObjProxy(dt);
     } else {
        this.setFromTimeProxy(dt.getTime(), tz);
