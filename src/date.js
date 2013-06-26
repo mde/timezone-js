@@ -848,6 +848,7 @@
       LAZY_LOAD: 'lazyLoad',
       MANUAL_LOAD: 'manualLoad'
     };
+    this.getRegionForTimezone = getRegionForTimezone;
     this.loadingScheme = this.loadingSchemes.LAZY_LOAD;
     this.loadedZones = {};
     this.zones = {};

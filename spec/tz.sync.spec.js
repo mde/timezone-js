@@ -150,6 +150,11 @@ describe('TimezoneJS', function () {
     expect(dt.tzAbbr).toEqual('CDT');
   });
 
+  it('should get correct region for tz', function () {
+    var t = timezoneJS.timezone.getRegionForTimezone('America/New_York');
+    expect(t).toEqual('northamerica');
+  });
+
   //This is for issue #1 in github
   it('should not get null in getAllZones', function () {
     var zones = timezoneJS.timezone.getAllZones();
