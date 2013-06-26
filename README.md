@@ -47,7 +47,7 @@ Put your directory of Olson files somewhere under your Web server root, and poin
 	timezoneJS.timezone.zoneFileBasePath = '/tz';
 	timezoneJS.timezone.init();
 
-If you use `timezoneJS.Date` with `Fleegix.js`, there's nothing else you need to do -- timezones for North America will be loaded and parsed on initial page load, and others will be downloaded and parsed on-the-fly, as needed. If you want to use this code with some other JavaScript toolkit, you'll need to overwrite your own transport method by setting `timezoneJS.timezone.transport = someFunction` method. Take a look at `test-utils.js` in `spec` for an example.
+If you use `timezoneJS.Date` with `Fleegix.js`, `jQuery` or `jQuery`-compatible libraries (like `Zepto.js`), there's nothing else you need to do -- timezones for North America will be loaded and parsed on initial page load, and others will be downloaded and parsed on-the-fly, as needed. If you want to use this code with some other JavaScript toolkit, you'll need to overwrite your own transport method by setting `timezoneJS.timezone.transport = someFunction` method. Take a look at `test-utils.js` in `spec` for an example.
 
 ## Usage
 
@@ -57,7 +57,7 @@ The `timezoneJS.Date` constructor is compatible to the normal JavaScript Date co
     timezoneJS.Date(Date, [tz])
     timezoneJS.Date(dt_str_tz, [tz])
 
-`dt_str_tz` is a date string containing timezone information, i.e. containing 'Z', 'T' or a timezone offset matching the regular expression /[+-][0-9]{4}/ (e.g. '+0200'). The [one-stop shop for cross-browser JavaScript Date parsing behavior](http://dygraphs.com/date-formats.html) provides detailed information about JavaScript date formats.
+`dt_str_tz` is a date string containing timezone information, i.e. containing `Z`, `T` or a timezone offset matching the regular expression `/[+-][0-9]{4}/` (e.g. `+0200`). The [one-stop shop for cross-browser JavaScript Date parsing behavior](http://dygraphs.com/date-formats.html) provides detailed information about JavaScript date formats.
 
 In the following cases the date is assumed to be a date in timezone `tz` or a locale date if `tz` is not provided:
 
