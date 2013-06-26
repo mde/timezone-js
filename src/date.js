@@ -148,7 +148,7 @@
     if (!opts.async) {
       return fleegix && fleegix.xhr
       ? fleegix.xhr.doReq({ url: opts.url, async: false })
-      : jQuery.ajax({ url : opts.url, async : false }).responseText;
+      : jQuery.ajax({ url : opts.url, async : false, dataType: 'text' }).responseText;
     }
     return fleegix && fleegix.xhr
     ? fleegix.xhr.send({
