@@ -242,7 +242,7 @@
     //    `timezoneJS.Date(dt_str, [tz])`
     //
     // `dt_str_tz` is a date string containing timezone information, i.e. containing 'Z', 'T' or
-    // /[+-][0-9]{4}/ (e.g. '+0200'), while `dt_str` is a string which does not contain 
+    // /[+-][0-9]{4}/ (e.g. '+0200'), while `dt_str` is a string which does not contain
     // timezone information. See: http://dygraphs.com/date-formats.html
     if (is_dt_local) {
        this.setFromDateObjProxy(dt);
