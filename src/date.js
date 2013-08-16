@@ -167,6 +167,9 @@
 
   // Constructor, which is similar to that of the native Date object itself
   timezoneJS.Date = function () {
+    if(this === timezoneJS) {
+      throw "timezoneJS.Date object must be constructed with 'new'";
+    }
     var args = Array.prototype.slice.apply(arguments)
     , dt = null
     , tz = null
