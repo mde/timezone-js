@@ -513,4 +513,19 @@ describe('timezoneJS.Date', function () {
       expect(time_value.toString("hh k")).toEqual(zhour + " " + ampm);
     }
   });
+
+  it('should throw an exception when initialized without "new"', function () {
+    var init = function() {
+      var date = timezoneJS.Date();
+    };
+    expect(init).toThrow();
+  });
+
+  it('should throw an exception when initialized with another Date when missing "new"', function () {
+    var d = new timezoneJS.Date();
+    var init = function() {
+      var k = timezoneJS.Date(d);
+    };
+    expect(init).toThrow();
+  });
 });
