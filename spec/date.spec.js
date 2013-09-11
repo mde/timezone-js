@@ -44,6 +44,11 @@ describe('timezoneJS.Date', function () {
     expect(date.toString('MMM dd yyyy HH:mm:ss k Z', 'Indian/Cocos')).toEqual('Feb 28 2011 07:14:22 PM CCT');
   });
 
+  it('should format the Unix Epoch UTC to different formats and tz correctly', function () {
+    var date = new timezoneJS.Date(1970,0,1,0,0,0,0,'Etc/UTC');
+    expect(date.toString('MMM dd yyyy HH:mm:ss k Z', 'Europe/Kaliningrad')).toEqual('Jan 01 1970 03:00:00 AM MSK');
+  });
+
   it('should use a default format with the given tz', function () {
     var date = new timezoneJS.Date(2012, 7, 30, 10, 56, 0, 0, 'America/Los_Angeles');
     expect(date.toString(null, 'Etc/UTC')).toEqual(date.toString('yyyy-MM-dd HH:mm:ss', 'Etc/UTC'));
