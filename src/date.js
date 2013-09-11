@@ -838,7 +838,7 @@
         return base.replace('%s', repl);
       } else if (base.indexOf('/') > -1) {
         //Chose one of two alternative strings.
-        return base.split("/", 2)[rule[6] ? 1 : 0];
+        return base.split("/", 2)[rule ? (rule[6] ? 1 : 0) : 0];
       }
       return base;
     }
