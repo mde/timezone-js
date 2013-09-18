@@ -40,11 +40,15 @@
   "use strict";
   var root = this;
 
-  var timezoneJS;
+  // Export the timezoneJS object for Node.js, with backwards-compatibility for the old `require()` API
+  var timezoneJS = {};
   if (typeof exports !== 'undefined') {
-    timezoneJS = exports;
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = timezoneJS;
+    }
+    exports.timezoneJS = timezoneJS;
   } else {
-    timezoneJS = root.timezoneJS = {};
+    root.timezoneJS = timezoneJS;
   }
 
   timezoneJS.VERSION = '0.4.4';
