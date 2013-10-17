@@ -2,7 +2,7 @@
 
   var fs = require('fs')
   , timezoneJS = require('./date')
-  , EXCLUDED = new RegExp('Makefile|factory|(\\.+)', 'i');
+  , EXCLUDED = new RegExp('README|Makefile|factory|(\\.+)', 'i');
 
   function parse(args) {
     // Upgrade passed script args to real Array
