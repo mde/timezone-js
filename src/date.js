@@ -177,7 +177,9 @@
     var args = Array.prototype.slice.apply(arguments)
     , dt = null
     , tz = null
-    , arr = [];
+    , arr = []
+    , valid = false
+    ;
 
 
     //We support several different constructors, including all the ones from `Date` object
@@ -198,8 +200,12 @@
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
       args = args[0];
     }
-    if (typeof args[args.length - 1] === 'string' && isNaN(Date.parse(args[args.length - 1].replace(/GMT\+\d+/, '')))) {
-      tz = args.pop();
+    // If the last string argument doesn't parse as a Date, treat it as tz
+    if (typeof args[args.length - 1] === 'string') {
+      valid = Date.parse(args[args.length - 1].replace(/GMT\+\d+/, ''));
+      if (isNaN(valid) || valid === null) {  // Checking against null is required for compatability with Datejs
+        tz = args.pop();
+      }
     }
     var is_dt_local = false;
     switch (args.length) {
