@@ -533,4 +533,9 @@ describe('timezoneJS.Date', function () {
     };
     expect(init).toThrow();
   });
+
+  it('should take in year and month as constructor correctly', function () {
+    var d = new timezoneJS.Date( 2011, 8, "Etc/UTC");
+    expect( d.getMonth()).toEqual(8);
+  });
 });

@@ -221,6 +221,10 @@
             is_dt_local = true;
         }
         break;
+      case 2:
+        dt = new Date(args[0], args[1]);
+        is_dt_local = true;
+        break;
       default:
         for (var i = 0; i < 7; i++) {
           arr[i] = args[i] || 0;
