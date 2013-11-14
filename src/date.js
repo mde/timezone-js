@@ -123,10 +123,11 @@
     if (number.length > digits) {
       return number.substr(number.length - digits, number.length);
     }
+    s = [s];
     while (s.length < digits) {
-      s = '0' + s;
+      s.unshift('0');
     }
-    return s;
+    return s.join('');
   };
 
   // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
