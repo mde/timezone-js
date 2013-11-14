@@ -48,7 +48,12 @@
       result.zones = _tz.zones;
       result.rules = _tz.rules;
     }
-    console.log(JSON.stringify(result));
+    console.log(JSON.stringify(result, function(key, value) {
+      if (typeof(value) == "number") {
+        return value.toString()
+      }
+      return value
+    }));
   }
 
   module.exports = parse(process.argv);
