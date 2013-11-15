@@ -120,12 +120,14 @@
   var _fixWidth = function (number, digits) {
     if (typeof number !== "number") { throw "not a number: " + number; }
     var s = number.toString();
-    if (number.length > digits) {
-      return number.substr(number.length - digits, number.length);
+    var s_len = s.length;
+    if (s_len.length > digits) {
+      return s_len.substr(s_len.length - digits, s_len.length);
     }
     s = [s];
-    while (s.length < digits) {
+    while (s_len < digits) {
       s.unshift('0');
+      s_len++;
     }
     return s.join('');
   };
