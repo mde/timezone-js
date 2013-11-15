@@ -114,14 +114,17 @@
   //
   // `_fixWidth(2, 2) = '02'`
   //
-  // `_fixWidth(1998, 2) = '98'`
+  // `_fixWidth(1998, 2) = '98'`  // year, shorten it to the 2 digit representation
+  // 
+  // `_fixWidth(23, 1) = '23'`  // hour, even with 1 digit specified, do not trim
   //
   // This is used to pad numbers in converting date to string in ISO standard.
   var _fixWidth = function (number, digits) {
     if (typeof number !== "number") { throw "not a number: " + number; }
+    var trim = (number > 1000);   // only trim 'year', as the others don't make sense why anyone would want that
     var s = number.toString();
     var s_len = s.length;
-    if (s_len > digits) {
+    if (trim && s_len > digits) {
       return s.substr(s_len - digits, s_len);
     }
     s = [s];
