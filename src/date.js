@@ -121,8 +121,8 @@
     if (typeof number !== "number") { throw "not a number: " + number; }
     var s = number.toString();
     var s_len = s.length;
-    if (s_len.length > digits) {
-      return s_len.substr(s_len.length - digits, s_len.length);
+    if (s_len > digits) {
+      return s.substr(s_len - digits - 1, s_len);
     }
     s = [s];
     while (s_len < digits) {
