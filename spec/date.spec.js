@@ -2,6 +2,16 @@ var TestUtils = require('./test-utils')
 , timezoneJS = TestUtils.getTimezoneJS();
 
 describe('timezoneJS.Date', function () {
+  it('should correctly trim dates when date exceeds format length', function () {
+    var date = new timezoneJS.Date(2011, 10, 22);
+    expect(date.toString('yy-MM-dd')).toEqual('11-11-22')
+  });
+
+  it('should correctly pad dates when date is shorter than the format length', function () {
+    var date = new timezoneJS.Date(2011, 3, 2);
+    expect(date.toString('yyyy-MM-dd')).toEqual('2011-04-02')
+  });
+
   it('should have correct format when initialized', function () {
     var date = new timezoneJS.Date();
     expect(date.toString()).toMatch(/[\d]{4}(-[\d]{2}){2} ([\d]{2}:){2}[\d]{2}/);
