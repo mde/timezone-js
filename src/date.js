@@ -918,7 +918,7 @@
     };
     this.loadZoneJSONData = function (url, sync) {
       var processData = function (data) {
-        data = eval('('+ data +')');
+        if (typeof data === 'string') data = eval('('+ data +')');
         for (var z in data.zones) {
           _this.zones[z] = data.zones[z];
         }
