@@ -104,6 +104,11 @@ The getTimezone method tells you what timezone a `timezoneJS.Date` is set to.
 	var dt = new timezoneJS.Date('12/27/2010', 'Asia/Tokyo');
 	dt.getTimezone(); => 'Asia/Tokyo'
 
+You can use `getTimezoneAbbreviation` method to get timezone abbreviation:
+
+	var dt = new timezoneJS.Date('10/31/2008', 'America/New_York');
+	dt.getTimezoneAbbreviation(); => 'EDT'
+
 ## Customizing
 
 If you don't change it, the timezone region that loads on
