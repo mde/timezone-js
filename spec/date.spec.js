@@ -548,4 +548,24 @@ describe('timezoneJS.Date', function () {
     var d = new timezoneJS.Date( 2011, 8, "Etc/UTC");
     expect( d.getMonth()).toEqual(8);
   });
+
+  it('should format string correctly in toDateString', function () {
+    var date = new timezoneJS.Date();
+    expect(date.toDateString()).toMatch(/^[\w]{3}[\s][\w]{3}[\s][\d]{2}[\s][\d]{4}$/);
+  });
+
+  it('should correctly convert date in toDateString', function () {
+    var date = new timezoneJS.Date(2011, 3, 2);
+    expect(date.toDateString()).toEqual('Sat Apr 02 2011');
+  });
+
+  it('should format string correctly in toTimeString', function () {
+    var date = new timezoneJS.Date();
+    expect(date.toTimeString()).toMatch(/^[\d]{1,2}:[\d]{2}[\s][\w]{2}$/);
+  });
+
+  it('should correctly convert date to time in toTimeString', function () {
+    var date = new timezoneJS.Date(2011, 3, 2);
+    expect(date.toTimeString()).toEqual('0:00 AM');
+  });
 });
