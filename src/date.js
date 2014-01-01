@@ -115,7 +115,7 @@
   // `_fixWidth(2, 2) = '02'`
   //
   // `_fixWidth(1998, 2) = '98'`  // year, shorten it to the 2 digit representation
-  // 
+  //
   // `_fixWidth(23, 1) = '23'`  // hour, even with 1 digit specified, do not trim
   //
   // This is used to pad numbers in converting date to string in ISO standard.
@@ -464,6 +464,8 @@
     toSource: function () {},
     toISOString: function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'Etc/UTC') + 'Z'; },
     toJSON: function () { return this.toISOString(); },
+    toDateString: function () { return this.toString('EEE MMM dd yyyy'); },
+    toTimeString: function () { return this.toString('H:mm k'); },
     // Allows different format following ISO8601 format:
     toString: function (format, tz) {
       // Default format is the same as toISOString

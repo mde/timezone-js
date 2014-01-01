@@ -82,7 +82,7 @@ Naturally enough, the `getTimezoneOffset` method returns the timezone offset in 
 	var dt = new timezoneJS.Date(2006, 9, 29, 2, 0, 'America/Los_Angeles');
 	dt.getTimezoneOffset(); => 480
 
-Just as you'd expect, the getTime method gives you the UTC timestamp for the given date:
+Just as you'd expect, the `getTime` method gives you the UTC timestamp for the given date:
 
 	var dtA = new timezoneJS.Date(2007, 9, 31, 10, 30, 'America/Los_Angeles');
 	var dtB = new timezoneJS.Date(2007, 9, 31, 12, 30, 'America/Chicago');
@@ -99,10 +99,15 @@ You can set (or reset) the timezone using the `setTimezone` method:
 	dt.setTimezone('Pacific/Honolulu');
 	dt.getTimezoneOffset(); => 600
 
-The getTimezone method tells you what timezone a `timezoneJS.Date` is set to.
+The `getTimezone` method tells you what timezone a `timezoneJS.Date` is set to:
 
 	var dt = new timezoneJS.Date('12/27/2010', 'Asia/Tokyo');
 	dt.getTimezone(); => 'Asia/Tokyo'
+
+You can use `getTimezoneAbbreviation` method to get timezone abbreviation:
+
+	var dt = new timezoneJS.Date('10/31/2008', 'America/New_York');
+	dt.getTimezoneAbbreviation(); => 'EDT'
 
 ## Customizing
 
@@ -207,3 +212,4 @@ Contributions:
 - Dov. B Katz (dov.katz@morganstanley.com)
 - Peter Bergström (pbergstr@mac.com)
 - Long Ho (@longlho)
+- Eugeny Loy (eugeny.loy@gmail.com)
