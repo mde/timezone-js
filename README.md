@@ -64,7 +64,7 @@ In the following cases the date is assumed to be a date in timezone `tz` or a lo
     timezoneJS.Date(year, mon, day, [hour], [min], [second], [tz])
     timezoneJS.Date(dt_str, [tz])
 
-`dt_str_tz` is a date string containing no timezone information.
+`dt_str` is a date string containing no timezone information.
 
 ### Examples
 
