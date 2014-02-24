@@ -57,7 +57,7 @@
   // This can be jQuery, Zepto or fleegix.
   // You can also specify your own transport mechanism by declaring
   // `timezoneJS.timezone.transport` to a `function`. More details will follow
-  var $ = root.$ || root.jQuery || root.Zepto
+  var ajax_lib = root.$ || root.jQuery || root.Zepto
     , fleegix = root.fleegix
     // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
     , DAYS = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -148,7 +148,7 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
-    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!jQuery || typeof jQuery.ajax === 'undefined')) {
+    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
       throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
     }
     if (!opts) return;
@@ -157,7 +157,7 @@
     if (!opts.async) {
       return fleegix && fleegix.xhr
       ? fleegix.xhr.doReq({ url: opts.url, async: false })
-      : jQuery.ajax({ url : opts.url, async : false, dataType: 'text' }).responseText;
+      : ajax_lib.ajax({ url : opts.url, async : false, dataType: 'text' }).responseText;
     }
     return fleegix && fleegix.xhr
     ? fleegix.xhr.send({
@@ -166,7 +166,7 @@
       handleSuccess : opts.success,
       handleErr : opts.error
     })
-    : jQuery.ajax({
+    : ajax_lib.ajax({
       url : opts.url,
       dataType: 'text',
       method : 'GET',
