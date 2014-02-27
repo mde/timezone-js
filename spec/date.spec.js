@@ -568,4 +568,9 @@ describe('timezoneJS.Date', function () {
     var date = new timezoneJS.Date(2011, 3, 2);
     expect(date.toTimeString()).toEqual('0:00 AM');
   });
+
+  it('should work with timezones containing - symbol', function () {
+    var d = new timezoneJS.Date(0, "Etc/GMT-5");
+    expect(d.getMonth().toString()).not.toEqual('NaN');
+  });
 });
