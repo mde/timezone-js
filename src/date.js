@@ -42,7 +42,11 @@
 
   // Export the timezoneJS object for Node.js, with backwards-compatibility for the old `require()` API
   var timezoneJS = {};
-  if (typeof exports !== 'undefined') {
+  if (typeof define === 'function') { // AMD
+    define(function() {
+     return timezoneJS;
+    });
+  } else if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
       exports = module.exports = timezoneJS;
     }
