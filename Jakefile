@@ -75,7 +75,8 @@ namespace('doc', function () {
 desc('Generates docs.');
 task('doc', ['doc:generate']);
 
-var p = new jake.NpmPublishTask('timezone-js', [
+var p = new jake.NpmPublishTask('timezone-js',
+    {versionFiles: ['package.json', 'bower.json']} , [
   'Jakefile'
 , 'README.md'
 , 'package.json'
