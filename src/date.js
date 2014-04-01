@@ -66,6 +66,11 @@
     , SHORT_DAYS = {}
     , EXACT_DATE_TIME = {};
 
+  // if node, require the file system module
+  if (typeof window === 'undefined' && typeof require === 'function') {
+    var nodefs = require('fs');
+  }
+
   //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
   for (var i = 0; i < MONTHS.length; i++) {
     SHORT_MONTHS[MONTHS[i].substr(0, 3)] = i;
@@ -135,7 +140,7 @@
     return s.join('');
   };
 
-  // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
+  // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto/Node.js
   //
   // Object `opts` include
   //
@@ -148,31 +153,46 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
-    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
-      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
+    // Server-side (node)
+    if (nodefs) {
+      if (opts.async) {
+        // No point if there's no success handler
+        if (typeof opts.success !== 'function') return;
+        opts.error = opts.error || console.error;
+        return nodefs.readFile(opts.url, 'utf8', function(err, data) {
+          return err ? opts.error(err) : opts.success(data);
+        });
+      }
+      return nodefs.readFileSync(opts.url, 'utf8');
     }
-    if (!opts) return;
-    if (!opts.url) throw new Error ('URL must be specified');
-    if (!('async' in opts)) opts.async = true;
-    if (!opts.async) {
+    // Client-side
+    else {
+      if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
+        throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
+      }
+      if (!opts) return;
+      if (!opts.url) throw new Error ('URL must be specified');
+      if (!('async' in opts)) opts.async = true;
+      if (!opts.async) {
+        return fleegix && fleegix.xhr
+        ? fleegix.xhr.doReq({ url: opts.url, async: false })
+        : ajax_lib.ajax({ url : opts.url, async : false, dataType: 'text' }).responseText;
+      }
       return fleegix && fleegix.xhr
-      ? fleegix.xhr.doReq({ url: opts.url, async: false })
-      : ajax_lib.ajax({ url : opts.url, async : false, dataType: 'text' }).responseText;
+      ? fleegix.xhr.send({
+        url : opts.url,
+        method : 'get',
+        handleSuccess : opts.success,
+        handleErr : opts.error
+      })
+      : ajax_lib.ajax({
+        url : opts.url,
+        dataType: 'text',
+        method : 'GET',
+        error : opts.error,
+        success : opts.success
+      });
     }
-    return fleegix && fleegix.xhr
-    ? fleegix.xhr.send({
-      url : opts.url,
-      method : 'get',
-      handleSuccess : opts.success,
-      handleErr : opts.error
-    })
-    : ajax_lib.ajax({
-      url : opts.url,
-      dataType: 'text',
-      method : 'GET',
-      error : opts.error,
-      success : opts.success
-    });
   };
 
   // Constructor, which is similar to that of the native Date object itself
@@ -208,7 +228,7 @@
     }
     // If the last string argument doesn't parse as a Date, treat it as tz
     if (typeof args[args.length - 1] === 'string') {
-      valid = Date.parse(args[args.length - 1].replace(/GMT[\+\-]\d+/, '')); 
+      valid = Date.parse(args[args.length - 1].replace(/GMT[\+\-]\d+/, ''));
       if (isNaN(valid) || valid === null) {  // Checking against null is required for compatability with Datejs
         tz = args.pop();
       }
