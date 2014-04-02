@@ -163,14 +163,6 @@ describe('TimezoneJS', function () {
     }
   });
 
-  it('should get tzInfo quickly', function () {
-    var time = Date.now();
-    for (var i = 0; i < 5000; i++) {
-      timezoneJS.timezone.getTzInfo(new Date(), 'America/Chicago');
-    }
-    console.log('Took ' + (Date.now() - time) + 'ms to get 5000 same tzInfo');
-  });
-
   it('should throw error with invalid zone', function () {
     var testFn = function () {
       timezoneJS.timezone.getTzInfo(new Date(), 'asd')
