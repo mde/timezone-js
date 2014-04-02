@@ -66,11 +66,6 @@
     , SHORT_DAYS = {}
     , EXACT_DATE_TIME = {};
 
-  // if node, require the file system module
-  if (typeof window === 'undefined' && typeof require === 'function') {
-    var nodefs = require('fs');
-  }
-
   //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
   for (var i = 0; i < MONTHS.length; i++) {
     SHORT_MONTHS[MONTHS[i].substr(0, 3)] = i;
@@ -153,8 +148,14 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
+    if (!opts) return;
+    if (!opts.url) throw new Error ('URL must be specified');
+    if (!('async' in opts)) opts.async = true;
+
     // Server-side (node)
-    if (nodefs) {
+    // if node, require the file system module
+    if (typeof window === 'undefined' && typeof require === 'function') {
+      var nodefs = require('fs');
       if (opts.async) {
         // No point if there's no success handler
         if (typeof opts.success !== 'function') return;
@@ -165,34 +166,30 @@
       }
       return nodefs.readFileSync(opts.url, 'utf8');
     }
+
     // Client-side
-    else {
-      if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
-        throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
-      }
-      if (!opts) return;
-      if (!opts.url) throw new Error ('URL must be specified');
-      if (!('async' in opts)) opts.async = true;
-      if (!opts.async) {
-        return fleegix && fleegix.xhr
-        ? fleegix.xhr.doReq({ url: opts.url, async: false })
-        : ajax_lib.ajax({ url : opts.url, async : false, dataType: 'text' }).responseText;
-      }
-      return fleegix && fleegix.xhr
-      ? fleegix.xhr.send({
-        url : opts.url,
-        method : 'get',
-        handleSuccess : opts.success,
-        handleErr : opts.error
-      })
-      : ajax_lib.ajax({
-        url : opts.url,
-        dataType: 'text',
-        method : 'GET',
-        error : opts.error,
-        success : opts.success
-      });
+    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
+      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
     }
+    if (!opts.async) {
+      return fleegix && fleegix.xhr
+      ? fleegix.xhr.doReq({ url: opts.url, async: false })
+      : ajax_lib.ajax({ url : opts.url, async : false, dataType: 'text' }).responseText;
+    }
+    return fleegix && fleegix.xhr
+    ? fleegix.xhr.send({
+      url : opts.url,
+      method : 'get',
+      handleSuccess : opts.success,
+      handleErr : opts.error
+    })
+    : ajax_lib.ajax({
+      url : opts.url,
+      dataType: 'text',
+      method : 'GET',
+      error : opts.error,
+      success : opts.success
+    });
   };
 
   // Constructor, which is similar to that of the native Date object itself
