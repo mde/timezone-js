@@ -562,4 +562,8 @@ describe('timezoneJS.Date', function () {
     var d = new timezoneJS.Date(0, "Etc/GMT-5");
     expect(d.getMonth().toString()).not.toEqual('NaN');
   });
+
+  it('should return timezoneOffset as number', function () {
+    expect(new timezoneJS.Date(2014, 1, 1, 2, 0, 0, 0, 'Asia/Kolkata').getTimezoneOffset()).toEqual(-330);
+  });
 });
