@@ -167,7 +167,7 @@ describe('TimezoneJS', function () {
     var testFn = function () {
       timezoneJS.timezone.getTzInfo(new Date(), 'asd')
     }
-    expect(testFn).toThrow(new Error('Timezone "asd" is either incorrect, or not loaded in the timezone registry.'));
+    expect(testFn).toThrow(new Error('Timezone \'asd\' is either incorrect, or not loaded in the timezone registry.'));
   });
 
 });
