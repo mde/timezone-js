@@ -139,7 +139,7 @@
     return s.join('');
   };
 
-  // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
+  // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto/Node.js
   //
   // Object `opts` include
   //
@@ -152,12 +152,29 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
-    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
-      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
-    }
     if (!opts) return;
     if (!opts.url) throw new Error ('URL must be specified');
     if (!('async' in opts)) opts.async = true;
+
+    // Server-side (node)
+    // if node, require the file system module
+    if (typeof window === 'undefined' && typeof require === 'function') {
+      var nodefs = require('fs');
+      if (opts.async) {
+        // No point if there's no success handler
+        if (typeof opts.success !== 'function') return;
+        opts.error = opts.error || console.error;
+        return nodefs.readFile(opts.url, 'utf8', function(err, data) {
+          return err ? opts.error(err) : opts.success(data);
+        });
+      }
+      return nodefs.readFileSync(opts.url, 'utf8');
+    }
+
+    // Client-side
+    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
+      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
+    }
     if (!opts.async) {
       return fleegix && fleegix.xhr
       ? fleegix.xhr.doReq({ url: opts.url, async: false })
