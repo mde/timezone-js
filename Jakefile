@@ -75,14 +75,20 @@ namespace('doc', function () {
 desc('Generates docs.');
 task('doc', ['doc:generate']);
 
-var p = new jake.NpmPublishTask('timezone-js',
-    {versionFiles: ['package.json', 'bower.json']} , [
-  'Jakefile'
-, 'README.md'
-, 'package.json'
-, 'spec/*'
-, 'src/*'
-]);
+publishTask('timezone-js',
+    {versionFiles: ['package.json', 'bower.json']} , function () {
+  this.packageFiles.include([
+    'Jakefile'
+  , 'README.md'
+  , 'package.json'
+  , 'spec/*'
+  , 'src/*'
+  ]);
+});
 
-jake.Task['npm:definePackage'].invoke();
-
+jake.Task['npm:updateVersionFiles'].on('complete', function (version) {
+  var code = fs.readFileSync('./src/date.js').toString();
+  code = code.replace(/timezoneJS.VERSION = '.+'/m,
+      "timezoneJS.VERSION = '" + version  + "'");
+  fs.writeFileSync('./src/date.js', code);
+});
