@@ -9,20 +9,20 @@
  * Copyright 2010 Matthew Eernisse (mde@fleegix.org)
  * and Open Source Applications Foundation
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  * Credits: Ideas included from incomplete JS implementation of Olson
- * parser, "XMLDAte" by Philippe Goetz (philippe.goetz@wanadoo.fr)
+ * parser, 'XMLDAte' by Philippe Goetz (philippe.goetz@wanadoo.fr)
  *
  * Contributions:
  * Jan Niehusmann
@@ -33,16 +33,20 @@
  * Long Ho
  */
 
- /*jslint laxcomma:true, laxbreak:true, expr:true*/
+ /*jshint laxcomma:true, laxbreak:true, expr:true*/
 (function () {
   // Standard initialization stuff to make sure the library is
   // usable on both client and server (node) side.
-  "use strict";
+  'use strict';
   var root = this;
 
   // Export the timezoneJS object for Node.js, with backwards-compatibility for the old `require()` API
   var timezoneJS = {};
-  if (typeof exports !== 'undefined') {
+  if (typeof define === 'function' && define.amd) { // AMD
+    define(function() {
+     return timezoneJS;
+    });
+  } else if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
       exports = module.exports = timezoneJS;
     }
@@ -51,7 +55,8 @@
     root.timezoneJS = timezoneJS;
   }
 
-  timezoneJS.VERSION = '0.4.4';
+  // TODO: Automate this with bower.json / package.json version updates
+  timezoneJS.VERSION = '0.4.9';
 
   // Grab the ajax library from global context.
   // This can be jQuery, Zepto or fleegix.
@@ -66,12 +71,12 @@
     , SHORT_DAYS = {}
     , EXACT_DATE_TIME = {};
 
-  //`{ "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5, "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11 }`
+  //`{ 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 }`
   for (var i = 0; i < MONTHS.length; i++) {
     SHORT_MONTHS[MONTHS[i].substr(0, 3)] = i;
   }
 
-  //`{ "Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6 }`
+  //`{ 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 }`
   for (i = 0; i < DAYS.length; i++) {
     SHORT_DAYS[DAYS[i].substr(0, 3)] = i;
   }
@@ -120,7 +125,7 @@
   //
   // This is used to pad numbers in converting date to string in ISO standard.
   var _fixWidth = function (number, digits) {
-    if (typeof number !== "number") { throw "not a number: " + number; }
+    if (typeof number !== 'number') { throw 'not a number: ' + number; }
     var trim = (number > 1000);   // only trim 'year', as the others don't make sense why anyone would want that
     var s = number.toString();
     var s_len = s.length;
@@ -135,7 +140,7 @@
     return s.join('');
   };
 
-  // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto
+  // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto/Node.js
   //
   // Object `opts` include
   //
@@ -148,12 +153,29 @@
   // - `error`: error callback function
   // Returns response from URL if async is false, otherwise the AJAX request object itself
   var _transport = function (opts) {
-    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
-      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
-    }
     if (!opts) return;
     if (!opts.url) throw new Error ('URL must be specified');
     if (!('async' in opts)) opts.async = true;
+
+    // Server-side (node)
+    // if node, require the file system module
+    if (typeof window === 'undefined' && typeof require === 'function') {
+      var nodefs = require('fs');
+      if (opts.async) {
+        // No point if there's no success handler
+        if (typeof opts.success !== 'function') return;
+        opts.error = opts.error || console.error;
+        return nodefs.readFile(opts.url, 'utf8', function(err, data) {
+          return err ? opts.error(err) : opts.success(data);
+        });
+      }
+      return nodefs.readFileSync(opts.url, 'utf8');
+    }
+
+    // Client-side
+    if ((!fleegix || typeof fleegix.xhr === 'undefined') && (!ajax_lib || typeof ajax_lib.ajax === 'undefined')) {
+      throw new Error('Please use the Fleegix.js XHR module, jQuery ajax, Zepto ajax, or define your own transport mechanism for downloading zone files.');
+    }
     if (!opts.async) {
       return fleegix && fleegix.xhr
       ? fleegix.xhr.doReq({ url: opts.url, async: false })
@@ -178,7 +200,7 @@
   // Constructor, which is similar to that of the native Date object itself
   timezoneJS.Date = function () {
     if(this === timezoneJS) {
-      throw "timezoneJS.Date object must be constructed with 'new'";
+      throw 'timezoneJS.Date object must be constructed with \'new\'';
     }
     var args = Array.prototype.slice.apply(arguments)
     , dt = null
@@ -208,7 +230,7 @@
     }
     // If the last string argument doesn't parse as a Date, treat it as tz
     if (typeof args[args.length - 1] === 'string') {
-      valid = Date.parse(args[args.length - 1].replace(/GMT[\+\-]\d+/, '')); 
+      valid = Date.parse(args[args.length - 1].replace(/GMT[\+\-]\d+/, ''));
       if (isNaN(valid) || valid === null) {  // Checking against null is required for compatability with Datejs
         tz = args.pop();
       }
@@ -551,7 +573,7 @@
     var _this = this
       , regionMap = {'Etc':'etcetera','EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
       , regionExceptions = {'Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Istanbul':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Salta':'southamerica','America/Argentina/San_Luis':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica','GMT':'etcetera','Europe/Nicosia':'asia'};
-    function invalidTZError(t) { throw new Error('Timezone "' + t + '" is either incorrect, or not loaded in the timezone registry.'); }
+    function invalidTZError(t) { throw new Error('Timezone \'' + t + '\' is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
       return !opts || !opts.async
@@ -563,7 +585,7 @@
           return _this.parseZones(str) && typeof opts.callback === 'function' && opts.callback();
         },
         error : function () {
-          throw new Error('Error retrieving "' + url + '" zoneinfo files');
+          throw new Error('Error retrieving \'' + url + '\' zoneinfo files');
         }
       });
     }
@@ -582,7 +604,7 @@
       }
       // Backward-compat file hasn't loaded yet, try looking in there
       if (!_this.loadedZones.backward) {
-        // This is for obvious legacy zones (e.g., Iceland) that don't even have a prefix like "America/" that look like normal zones
+        // This is for obvious legacy zones (e.g., Iceland) that don't even have a prefix like 'America/' that look like normal zones
         _this.loadZoneFile('backward');
         return getRegionForTimezone(tz);
       }
@@ -616,14 +638,14 @@
       var t = tz;
       var zoneList = _this.zones[t];
       // Follow links to get to an actual zone
-      while (typeof zoneList === "string") {
+      while (typeof zoneList === 'string') {
         t = zoneList;
         zoneList = _this.zones[t];
       }
       if (!zoneList) {
         // Backward-compat file hasn't loaded yet, try looking in there
         if (!_this.loadedZones.backward) {
-          //This is for backward entries like "America/Fort_Wayne" that
+          //This is for backward entries like 'America/Fort_Wayne' that
           // getRegionForTimezone *thinks* it has a region file and zone
           // for (e.g., America => 'northamerica'), but in reality it's a
           // legacy zone we need the backward file for.
@@ -633,7 +655,7 @@
         invalidTZError(t);
       }
       if (zoneList.length === 0) {
-        throw new Error('No Zone found for "' + tz + '" on ' + dt);
+        throw new Error('No Zone found for \'' + tz + '\' on ' + dt);
       }
       //Do backwards lookup since most use cases deal with newer dates.
       for (var i = zoneList.length - 1; i >= 0; i--) {
@@ -686,7 +708,7 @@
         } else if (type === 'w' || !type) { // Wall Clock Time
           offset = getAdjustedOffset(basicOffset, rule[6]);
         } else {
-          throw new Error("unknown type " + type);
+          throw new Error('unknown type ' + type);
         }
         offset *= 60 * 1000; // to millis
 
@@ -731,11 +753,11 @@
             var targetDay
               , operator;
             //Example: `lastThu`
-            if (rule[4].substr(0, 4) === "last") {
+            if (rule[4].substr(0, 4) === 'last') {
               // Start at the last day of the month and work backward.
               effectiveDate = new Date(Date.UTC(year, SHORT_MONTHS[rule[3]] + 1, 1, hms[0] - 24, hms[1], hms[2], 0));
               targetDay = SHORT_DAYS[rule[4].substr(4, 3)];
-              operator = "<=";
+              operator = '<=';
             }
             //Example: `Sun>=15`
             else {
@@ -746,10 +768,10 @@
             }
             var ourDay = effectiveDate.getUTCDay();
             //Go forwards.
-            if (operator === ">=") {
+            if (operator === '>=') {
               effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay + ((targetDay < ourDay) ? 7 : 0)));
             }
-            //Go backwards.  Looking for the last of a certain day, or operator is "<=" (less likely).
+            //Go backwards.  Looking for the last of a certain day, or operator is '<=' (less likely).
             else {
               effectiveDate.setUTCDate(effectiveDate.getUTCDate() + (targetDay - ourDay - ((targetDay > ourDay) ? 7 : 0)));
             }
@@ -774,10 +796,10 @@
               (
                 // Date is in a set range.
                 ruleset[i][1] >= year ||
-                // Date is in an "only" year.
-                  (ruleset[i][0] === year && ruleset[i][1] === "only") ||
+                // Date is in an 'only' year.
+                  (ruleset[i][0] === year && ruleset[i][1] === 'only') ||
                 //We're in a range from the start year to infinity.
-                    ruleset[i][1] === "max"
+                    ruleset[i][1] === 'max'
           )
              ) {
                //It's completely okay to have any number of matches here.
@@ -860,7 +882,7 @@
         return base.replace('%s', repl);
       } else if (base.indexOf('/') > -1) {
         //Chose one of two alternative strings.
-        return base.split("/", 2)[rule ? (rule[6] ? 1 : 0) : 0];
+        return base.split('/', 2)[rule ? (rule[6] ? 1 : 0) : 0];
       }
       return base;
     }
@@ -956,9 +978,9 @@
       for (var i = 0; i < lines.length; i++) {
         l = lines[i];
         if (l.match(/^\s/)) {
-          l = "Zone " + zone + l;
+          l = 'Zone ' + zone + l;
         }
-        l = l.split("#")[0];
+        l = l.split('#')[0];
         if (l.length > 3) {
           arr = l.split(/\s+/);
           chunk = arr.shift();
@@ -996,7 +1018,7 @@
                 throw new Error('Error with Link ' + arr[1] + '. Cannot create link of a preexisted zone.');
               }
               //Create the link.
-              _this.zones[arr[1]] = arr[0];
+              _this.zones[arr[1]] = +arr[0];
               break;
           }
         }
@@ -1028,5 +1050,5 @@
       var abbr = getAbbreviation(z, rule);
       return { tzOffset: off, tzAbbr: abbr };
     };
-  };
+  }();
 }).call(this);

@@ -1,0 +1,14 @@
+{
+  "laxcomma": true,
+  "browser": true,
+  "globalstrict": true,
+  "strict": true,
+  "expr": true,
+  "multistr": true,
+  "globals": {
+    "define": true,
+    "window": true,
+    "module": true,
+    "exports": true
+  }
+}

@@ -242,17 +242,6 @@ describe('timezoneJS.Date', function () {
     expect(dt.getTimezoneAbbreviation()).toEqual(dtA.getTimezoneAbbreviation());
   });
 
-  it('should convert timezone quickly', function () {
-    var start = Date.now()
-    , yearToMillis = 5 * 365 * 24 * 3600 * 1000
-    , date;
-    for (var i = 0; i < 5000; i++) {
-      date = new timezoneJS.Date(start - Math.random() * yearToMillis, 'America/New_York');
-      date.setTimezone('Europe/Minsk');
-    }
-    console.log('Took ' + (Date.now() - start) + 'ms to convert 5000 dates');
-  });
-
   it('should output 1955-10-30 00:00:00 America/New_York as EDT', function () {
     var dt = new timezoneJS.Date(1955, 9, 30, 0, 0, 0, 'America/New_York');
     expect(dt.getTimezoneOffset()).toEqual(240);
@@ -572,5 +561,9 @@ describe('timezoneJS.Date', function () {
   it('should work with timezones containing - symbol', function () {
     var d = new timezoneJS.Date(0, "Etc/GMT-5");
     expect(d.getMonth().toString()).not.toEqual('NaN');
+  });
+
+  it('should return timezoneOffset as number', function () {
+    expect(new timezoneJS.Date(2014, 1, 1, 2, 0, 0, 0, 'Asia/Kolkata').getTimezoneOffset()).toEqual(-330);
   });
 });
