@@ -55,7 +55,6 @@
     root.timezoneJS = timezoneJS;
   }
 
-  // TODO: Automate this with bower.json / package.json version updates
   timezoneJS.VERSION = '0.4.9';
 
   // Grab the ajax library from global context.
