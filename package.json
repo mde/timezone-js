@@ -25,7 +25,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "jake": "latest",
+    "jake": "0.7.x",
     "jasmine-node": "latest"
   }
 }
