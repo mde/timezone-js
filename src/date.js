@@ -1017,7 +1017,15 @@
                 throw new Error('Error with Link ' + arr[1] + '. Cannot create link of a preexisted zone.');
               }
               //Create the link.
-              _this.zones[arr[1]] = +arr[0];
+              //Links are saved as strings that are the keys
+              //of their referenced values.
+              //Ex: "US/Central": "America/Chicago"
+              if (isNaN(arr[0])) {
+                _this.zones[arr[1]] = arr[0];
+              }
+              else {
+                _this.zones[arr[1]] = parseInt(arr[0], 10);
+              }
               break;
           }
         }
