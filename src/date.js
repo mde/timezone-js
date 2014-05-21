@@ -1020,7 +1020,12 @@
               //Links are saved as strings that are the keys
               //of their referenced values.
               //Ex: "US/Central": "America/Chicago"
-              _this.zones[arr[1]] = arr[0];
+              if (isNaN(parseInt(arr[0]))) {
+                _this.zones[arr[1]] = arr[0];
+              }
+              else {
+                _this.zones[arr[1]] = parseInt(arr[0]);
+              }
               break;
           }
         }
