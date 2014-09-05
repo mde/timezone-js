@@ -14,7 +14,7 @@ describe('timezoneJS.Date', function () {
 
   it('should have correct format when initialized', function () {
     var date = new timezoneJS.Date();
-    expect(date.toString()).toMatch(/[\d]{4}(-[\d]{2}){2} ([\d]{2}:){2}[\d]{2}/);
+    expect(date.toString()).toMatch(/[\d]{4}(-[\d]{2}){2}T([\d]{2}:){2}[\d]{2}.[\d]{3}/);
   });
 
   it('should have handled March correctly (not replacing h) when initialized', function () {
@@ -30,7 +30,7 @@ describe('timezoneJS.Date', function () {
   it('should get date correctly from UTC (2011-10-28T12:44:22.172000000)', function () {
     var date = new timezoneJS.Date(2011, 9, 28, 12, 44, 22, 172,'Etc/UTC');
     expect(date.getTime()).toEqual(1319805862172);
-    expect(date.toString()).toEqual('2011-10-28 12:44:22');
+    expect(date.toString()).toEqual('2011-10-28T12:44:22.172');
     expect(date.toString('yyyy-MM-dd')).toEqual('2011-10-28');
   });
 
@@ -61,8 +61,8 @@ describe('timezoneJS.Date', function () {
 
   it('should use a default format with the given tz', function () {
     var date = new timezoneJS.Date(2012, 7, 30, 10, 56, 0, 0, 'America/Los_Angeles');
-    expect(date.toString(null, 'Etc/UTC')).toEqual(date.toString('yyyy-MM-dd HH:mm:ss', 'Etc/UTC'));
-    expect(date.toString(null, 'America/New_York')).toEqual(date.toString('yyyy-MM-dd HH:mm:ss', 'America/New_York'));
+    expect(date.toString(null, 'Etc/UTC')).toEqual(date.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'Etc/UTC'));
+    expect(date.toString(null, 'America/New_York')).toEqual(date.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York'));
   });
 
   it('should convert dates from UTC to a timezone correctly', function () {
@@ -86,7 +86,7 @@ describe('timezoneJS.Date', function () {
 
     dtA.setTimezone('America/Chicago');
     expect(dtA.getTime()).toEqual(1193851800000);
-    expect(dtA.toString()).toEqual('2007-10-31 12:30:00');
+    expect(dtA.toString()).toEqual('2007-10-31T12:30:00.000');
   });
 
   it('should convert dates from unix time properly', function () {
@@ -94,7 +94,7 @@ describe('timezoneJS.Date', function () {
 
     dtA.setTimezone('America/Chicago');
     expect(dtA.getTime()).toEqual(1193851800000);
-    expect(dtA.toString()).toEqual('2007-10-31 12:30:00');
+    expect(dtA.toString()).toEqual('2007-10-31T12:30:00.000');
   });
 
   it('should output toISOString correctly', function () {
@@ -159,7 +159,7 @@ describe('timezoneJS.Date', function () {
     //This is a RFC 3339 UTC string format
     var dt = new timezoneJS.Date('2012-01-01T15:00:00.000', 'Asia/Bangkok');
 
-    expect(dt.toString()).toEqual('2012-01-01 22:00:00');
+    expect(dt.toString()).toEqual('2012-01-01T22:00:00.000');
     expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'America/New_York')).toEqual('2012-01-01T10:00:00.000');
     expect(dt.toString('yyyy-MM-ddTHH:mm:ss.SSS')).toEqual('2012-01-01T22:00:00.000');
   });
@@ -251,7 +251,7 @@ describe('timezoneJS.Date', function () {
     var dt = new timezoneJS.Date(2011, 11, 29, 23, 59, 59, 'Pacific/Apia');
     var t = dt.getTime() + 1000;
     dt.setTime(t);
-    expect(dt.toString()).toEqual('2011-12-31 00:00:00');
+    expect(dt.toString()).toEqual('2011-12-31T00:00:00.000');
     expect(dt.getTime()).toEqual(t);
   });
 
