@@ -86,7 +86,7 @@ publishTask('timezone-js',
   ]);
 });
 
-jake.Task['npm:updateVersionFiles'].on('complete', function (version) {
+jake.Task['publish:updateVersionFiles'].on('complete', function (version) {
   var code = fs.readFileSync('./src/date.js').toString();
   code = code.replace(/timezoneJS.VERSION = '.+'/m,
       "timezoneJS.VERSION = '" + version  + "'");
