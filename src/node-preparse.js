@@ -1,3 +1,18 @@
+
+var files = [ 'africa'
+, 'antarctica'
+, 'asia'
+, 'australasia'
+, 'backward'
+, 'etcetera'
+, 'europe'
+, 'factory'
+, 'northamerica'
+, 'pacificnew'
+, 'southamerica'
+, 'systemv'
+];
+
 (function () {
 
   var fs = require('fs')
@@ -18,12 +33,13 @@
     , _tz = timezoneJS.timezone;
 
     _tz.loadingScheme = _tz.loadingSchemes.MANUAL_LOAD;
-    _tz.zoneFiles = fs.readdirSync(baseDir);
+    _tz.zoneFiles = files;
 
     for (var i = 0; i < _tz.zoneFiles.length; i++) {
       var zoneFile = _tz.zoneFiles[i];
       if (EXCLUDED.test(zoneFile)) continue;
       var zoneData = fs.readFileSync(baseDir + '/' + zoneFile, 'utf8');
+      console.log('parsing', zoneFile);
       _tz.parseZones(zoneData);
     }
     if (cities) {

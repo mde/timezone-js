@@ -5,7 +5,7 @@ var TestUtils = require('./test-utils')
     loadingScheme: date.timezone.loadingSchemes.MANUAL_LOAD
   });
 describe('TimezoneJS', function () {
-  it('should manually load everything correctly', function () {
+  xit('should manually load everything correctly', function () {
     var i = 0
       , sampleTz;
 
