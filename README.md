@@ -45,9 +45,11 @@ Then you'll need to make the files available to the `timezoneJS.timezone` code, 
 Put your directory of Olson files somewhere under your Web server root, and point `timezoneJS.timezone.zoneFileBasePath` to it. Then call the init function. Your code will look something like this:
 
 	timezoneJS.timezone.zoneFileBasePath = '/tz';
-	timezoneJS.timezone.init();
+	timezoneJS.timezone.init({ callback: cb });
 
 If you use `timezoneJS.Date` with `Fleegix.js`, `jQuery` or `jQuery`-compatible libraries (like `Zepto.js`), there's nothing else you need to do -- timezones for North America will be loaded and parsed on initial page load, and others will be downloaded and parsed on-the-fly, as needed. If you want to use this code with some other JavaScript toolkit, you'll need to overwrite your own transport method by setting `timezoneJS.timezone.transport = someFunction` method. Take a look at `test-utils.js` in `spec` for an example.
+
+**NOTE**: By default `init()` is async so you'll need to specify a callback function such as `init({ callback: cb })`. Otherwise set `init({ async: false })` to turn off async.
 
 ## Usage
 

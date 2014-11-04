@@ -1048,7 +1048,7 @@
         }
       }
       var z = getZone(dt, tz);
-      var off = z[0];
+      var off = +z[0];
       //See if the offset needs adjustment.
       var rule = getRule(dt, z, isUTC);
       if (rule) {
@@ -1058,4 +1058,4 @@
       return { tzOffset: off, tzAbbr: abbr };
     };
   }();
-}).call(this);
+}).call(typeof window !== "undefined" ? window : this);
