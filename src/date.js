@@ -968,6 +968,11 @@
       return arr.sort();
     };
     this.parseZones = function (str) {
+
+      if (!str) {
+        return false;
+      }
+
       var lines = str.split('\n')
         , arr = []
         , chunk = ''
