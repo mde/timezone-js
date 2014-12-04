@@ -570,8 +570,8 @@
 
   timezoneJS.timezone = new function () {
     var _this = this
-      , regionMap = {'Etc':'etcetera','EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':'northamerica','Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
-      , regionExceptions = {'Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Istanbul':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','America/Argentina/Buenos_Aires':'southamerica','America/Argentina/Salta':'southamerica','America/Argentina/San_Luis':'southamerica','America/Argentina/Cordoba':'southamerica','America/Argentina/Tucuman':'southamerica','America/Argentina/La_Rioja':'southamerica','America/Argentina/San_Juan':'southamerica','America/Argentina/Jujuy':'southamerica','America/Argentina/Catamarca':'southamerica','America/Argentina/Mendoza':'southamerica','America/Argentina/Rio_Gallegos':'southamerica','America/Argentina/Ushuaia':'southamerica','America/Aruba':'southamerica','America/La_Paz':'southamerica','America/Noronha':'southamerica','America/Belem':'southamerica','America/Fortaleza':'southamerica','America/Recife':'southamerica','America/Araguaina':'southamerica','America/Maceio':'southamerica','America/Bahia':'southamerica','America/Sao_Paulo':'southamerica','America/Campo_Grande':'southamerica','America/Cuiaba':'southamerica','America/Porto_Velho':'southamerica','America/Boa_Vista':'southamerica','America/Manaus':'southamerica','America/Eirunepe':'southamerica','America/Rio_Branco':'southamerica','America/Santiago':'southamerica','Pacific/Easter':'southamerica','America/Bogota':'southamerica','America/Curacao':'southamerica','America/Guayaquil':'southamerica','Pacific/Galapagos':'southamerica','Atlantic/Stanley':'southamerica','America/Cayenne':'southamerica','America/Guyana':'southamerica','America/Asuncion':'southamerica','America/Lima':'southamerica','Atlantic/South_Georgia':'southamerica','America/Paramaribo':'southamerica','America/Port_of_Spain':'southamerica','America/Montevideo':'southamerica','America/Caracas':'southamerica','GMT':'etcetera','Europe/Nicosia':'asia'};
+      , regionMap = {'Etc':'etcetera','EST':'northamerica','MST':'northamerica','HST':'northamerica','EST5EDT':'northamerica','CST6CDT':'northamerica','MST7MDT':'northamerica','PST8PDT':'northamerica','America':['northamerica','southamerica'],'Pacific':'australasia','Atlantic':'europe','Africa':'africa','Indian':'africa','Antarctica':'antarctica','Asia':'asia','Australia':'australasia','Europe':'europe','WET':'europe','CET':'europe','MET':'europe','EET':'europe'}
+      , regionExceptions = {'Pacific/Honolulu':'northamerica','Atlantic/Bermuda':'northamerica','Atlantic/Cape_Verde':'africa','Atlantic/St_Helena':'africa','Indian/Kerguelen':'antarctica','Indian/Chagos':'asia','Indian/Maldives':'asia','Indian/Christmas':'australasia','Indian/Cocos':'australasia','America/Danmarkshavn':'europe','America/Scoresbysund':'europe','America/Godthab':'europe','America/Thule':'europe','Asia/Istanbul':'europe','Asia/Yekaterinburg':'europe','Asia/Omsk':'europe','Asia/Novosibirsk':'europe','Asia/Krasnoyarsk':'europe','Asia/Irkutsk':'europe','Asia/Yakutsk':'europe','Asia/Vladivostok':'europe','Asia/Sakhalin':'europe','Asia/Magadan':'europe','Asia/Kamchatka':'europe','Asia/Anadyr':'europe','Africa/Ceuta':'europe','GMT':'etcetera','Europe/Nicosia':'asia'};
     function invalidTZError(t) { throw new Error('Timezone \'' + t + '\' is either incorrect, or not loaded in the timezone registry.'); }
     function builtInLoadZoneFile(fileName, opts) {
       var url = _this.zoneFileBasePath + '/' + fileName;
@@ -903,28 +903,33 @@
       var opts = { async: true }
         , def = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
           ? this.zoneFiles
-          : (this.defaultZoneFile || 'northamerica')
-        , done = 0
-        , callbackFn;
+          : (this.defaultZoneFile || 'northamerica');
       //Override default with any passed-in opts
       for (var p in o) {
         opts[p] = o[p];
       }
-      if (typeof def === 'string') {
-        return this.loadZoneFile(def, opts);
+      return this.loadZoneFiles(def, opts);
+    };
+
+    //Get a single zone file, or all files in an array
+    this.loadZoneFiles = function(fileNames, opts) {
+      var callbackFn
+        , done = 0;
+      if (typeof fileNames === 'string') {
+        return this.loadZoneFile(fileNames, opts);
       }
       //Wraps callback function in another one that makes
       // sure all files have been loaded.
+      opts = opts || {};
       callbackFn = opts.callback;
       opts.callback = function () {
         done++;
-        (done === def.length) && typeof callbackFn === 'function' && callbackFn();
+        (done === fileNames.length) && typeof callbackFn === 'function' && callbackFn();
       };
-      for (var i = 0; i < def.length; i++) {
-        this.loadZoneFile(def[i], opts);
+      for (var i = 0; i < fileNames.length; i++) {
+        this.loadZoneFile(fileNames[i], opts);
       }
     };
-
     //Get the zone files via XHR -- if the sync flag
     // is set to true, it's being called by the lazy-loading
     // mechanism, so the result needs to be returned inline.
@@ -1047,10 +1052,8 @@
         if (!zoneFile) {
           throw new Error('Not a valid timezone ID.');
         }
-        if (!this.loadedZones[zoneFile]) {
-          //Get the file and parse it -- use synchronous XHR.
-          this.loadZoneFile(zoneFile);
-        }
+        //Get the file and parse it -- use synchronous XHR.
+        this.loadZoneFiles(zoneFile);
       }
       var z = getZone(dt, tz);
       var off = +z[0];
