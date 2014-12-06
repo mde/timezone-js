@@ -261,6 +261,10 @@
         break;
     }
 
+    if (isNaN(dt.getTime())) { // invalid date were passed
+      throw new Error('Invalid date');
+    }
+
     this._useCache = false;
     this._tzInfo = {};
     this._day = 0;
