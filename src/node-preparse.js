@@ -39,7 +39,6 @@ var files = [ 'africa'
       var zoneFile = _tz.zoneFiles[i];
       if (EXCLUDED.test(zoneFile)) continue;
       var zoneData = fs.readFileSync(baseDir + '/' + zoneFile, 'utf8');
-      console.log('parsing', zoneFile);
       _tz.parseZones(zoneData);
     }
     if (cities) {
