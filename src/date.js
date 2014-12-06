@@ -55,7 +55,7 @@
     root.timezoneJS = timezoneJS;
   }
 
-  timezoneJS.VERSION = '0.4.12';
+  timezoneJS.VERSION = '0.4.13';
 
   // Grab the ajax library from global context.
   // This can be jQuery, Zepto or fleegix.
