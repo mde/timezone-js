@@ -151,8 +151,13 @@ describe('TimezoneJS', function () {
   });
 
   it('should get correct region for tz', function () {
+    var t = timezoneJS.timezone.getRegionForTimezone('Africa/Abidjan');
+    expect(t).toEqual('africa');
+  });
+
+  it('should get both northamerica and southamerica region for America', function () {
     var t = timezoneJS.timezone.getRegionForTimezone('America/New_York');
-    expect(t).toEqual('northamerica');
+    expect(t).toEqual(['northamerica', 'southamerica']);
   });
 
   //This is for issue #1 in github
