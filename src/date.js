@@ -494,7 +494,7 @@
     // Allows different format following ISO8601 format:
     toString: function (format, tz) {
       // Default format is the same as toISOString
-      if (!format) format = 'yyyy-MM-dd HH:mm:ss';
+      if (!format) format = 'yyyy-MM-ddTHH:mm:ss.SSS';
       var result = format;
       var tzInfo = tz ? timezoneJS.timezone.getTzInfo(this.getTime(), tz) : this.getTimezoneInfo();
       var _this = this;
