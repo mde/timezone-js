@@ -654,6 +654,10 @@
           // legacy zone we need the backward file for.
           _this.loadZoneFile('backward');
           return getZone(dt, tz);
+        } else if (t && t !== tz) {
+          //Load the linked zone found in the backward file
+          _this.lazyLoadZoneFiles(t);
+          return getZone(dt, t);
         }
         invalidTZError(t);
       }
@@ -1049,16 +1053,7 @@
     //Expose transport mechanism and allow overwrite.
     this.transport = _transport;
     this.getTzInfo = function (dt, tz, isUTC) {
-      //Lazy-load any zones not yet loaded.
-      if (this.loadingScheme === this.loadingSchemes.LAZY_LOAD) {
-        //Get the correct region for the zone.
-        var zoneFile = getRegionForTimezone(tz);
-        if (!zoneFile) {
-          throw new Error('Not a valid timezone ID.');
-        }
-        //Get the file and parse it -- use synchronous XHR.
-        this.loadZoneFiles(zoneFile);
-      }
+      this.lazyLoadZoneFiles(tz);
       var z = getZone(dt, tz);
       var off = +z[0];
       //See if the offset needs adjustment.
@@ -1068,6 +1063,18 @@
       }
       var abbr = getAbbreviation(z, rule);
       return { tzOffset: off, tzAbbr: abbr };
+    };
+    //Lazy-load any zones not yet loaded.
+    this.lazyLoadZoneFiles = function(tz) {
+      if (this.loadingScheme === this.loadingSchemes.LAZY_LOAD) {
+        //Get the correct region for the zone.
+        var zoneFile = getRegionForTimezone(tz);
+        if (!zoneFile) {
+          throw new Error('Not a valid timezone ID.');
+        }
+        //Get the file and parse it -- use synchronous XHR.
+        this.loadZoneFiles(zoneFile);
+      }
     };
   }();
 }).call(typeof window !== "undefined" ? window : this);
