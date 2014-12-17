@@ -12,4 +12,11 @@ describe('TimezoneJS', function () {
     expect(sampleTz).toBeDefined();
     expect(sampleTz.tzAbbr).toEqual('ICT');
   });
+
+  it('should load an unloaded zone file linked from the backward file', function () {
+    sampleTz = timezoneJS.timezone.getTzInfo(new Date(), 'Antarctica/South_Pole');
+    expect(timezoneJS.timezone.loadedZones).toEqual({ asia: true, antarctica: true, backward: true, australasia: true });
+    expect(sampleTz.tzAbbr).toEqual('NZDT');
+  });
+
 });
