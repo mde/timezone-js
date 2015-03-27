@@ -24,28 +24,32 @@ Next you'll need the Olson time zone files -- `timezoneJS.Date` uses the raw Ols
 
 Here is an example of how to get the Olson time zone files:
 
-    ##!/bin/bash
-        
-    # NOTE: Run from your webroot
-    
-    # Create the /tz directory
-    mkdir tz
-    
-    # Download the latest Olson files
-    curl ftp://ftp.iana.org/tz/tzdata-latest.tar.gz -o tz/tzdata-latest.tar.gz
-    
-    # Expand the files
-    tar -xvzf tz/tzdata-latest.tar.gz -C tz
+``` bash
+##!/bin/bash
 
-    # Optionally, you can remove the downloaded archives.
-    rm tz/tzdata-latest.tar.gz
+# NOTE: Run from your webroot
+
+# Create the /tz directory
+mkdir tz
+
+# Download the latest Olson files
+curl ftp://ftp.iana.org/tz/tzdata-latest.tar.gz -o tz/tzdata-latest.tar.gz
+
+# Expand the files
+tar -xvzf tz/tzdata-latest.tar.gz -C tz
+
+# Optionally, you can remove the downloaded archives.
+rm tz/tzdata-latest.tar.gz
+```
 
 Then you'll need to make the files available to the `timezoneJS.timezone` code, and initialize the code to parse your default region. (This will be North America if you don't change it). No sense in downloading and parsing timezone data for the entire world if you're not going to be using it.
 
 Put your directory of Olson files somewhere under your Web server root, and point `timezoneJS.timezone.zoneFileBasePath` to it. Then call the init function. Your code will look something like this:
 
-	timezoneJS.timezone.zoneFileBasePath = '/tz';
-	timezoneJS.timezone.init({ callback: cb });
+``` js
+timezoneJS.timezone.zoneFileBasePath = '/tz';
+timezoneJS.timezone.init({ callback: cb });
+```
 
 If you use `timezoneJS.Date` with `Fleegix.js`, `jQuery` or `jQuery`-compatible libraries (like `Zepto.js`), there's nothing else you need to do -- timezones for North America will be loaded and parsed on initial page load, and others will be downloaded and parsed on-the-fly, as needed. If you want to use this code with some other JavaScript toolkit, you'll need to overwrite your own transport method by setting `timezoneJS.timezone.transport = someFunction` method. Take a look at `test-utils.js` in `spec` for an example.
 
@@ -55,16 +59,20 @@ If you use `timezoneJS.Date` with `Fleegix.js`, `jQuery` or `jQuery`-compatible 
 
 The `timezoneJS.Date` constructor is compatible to the normal JavaScript Date constructor, but additional allows to pass an optional `tz` (timezone). In the following cases the passed date/time is unambiguous:
 
-    timezoneJS.Date(millis, [tz])
-    timezoneJS.Date(Date, [tz])
-    timezoneJS.Date(dt_str_tz, [tz])
+``` js
+timezoneJS.Date(millis, [tz])
+timezoneJS.Date(Date, [tz])
+timezoneJS.Date(dt_str_tz, [tz])
+```
 
 `dt_str_tz` is a date string containing timezone information, i.e. containing `Z`, `T` or a timezone offset matching the regular expression `/[+-][0-9]{4}/` (e.g. `+0200`). The [one-stop shop for cross-browser JavaScript Date parsing behavior](http://dygraphs.com/date-formats.html) provides detailed information about JavaScript date formats.
 
 In the following cases the date is assumed to be a date in timezone `tz` or a locale date if `tz` is not provided:
 
-    timezoneJS.Date(year, mon, day, [hour], [min], [second], [tz])
-    timezoneJS.Date(dt_str, [tz])
+``` js
+timezoneJS.Date(year, mon, day, [hour], [min], [second], [tz])
+timezoneJS.Date(dt_str, [tz])
+```
 
 `dt_str` is a date string containing no timezone information.
 
@@ -72,59 +80,75 @@ In the following cases the date is assumed to be a date in timezone `tz` or a lo
 
 Create a `timezoneJS.Date` the same way as a normal JavaScript Date, but append a timezone parameter on the end:
 
-	var dt = new timezoneJS.Date('10/31/2008', 'America/New_York');
-	var dt = new timezoneJS.Date(2008, 9, 31, 11, 45, 'America/Los_Angeles');
+``` js
+var dt = new timezoneJS.Date('10/31/2008', 'America/New_York');
+var dt = new timezoneJS.Date(2008, 9, 31, 11, 45, 'America/Los_Angeles');
+```
 
 Naturally enough, the `getTimezoneOffset` method returns the timezone offset in minutes based on the timezone you set for the date.
 
-	// Pre-DST-leap
-	var dt = new timezoneJS.Date(2006, 9, 29, 1, 59, 'America/Los_Angeles');
-	dt.getTimezoneOffset(); => 420
-	// Post-DST-leap
-	var dt = new timezoneJS.Date(2006, 9, 29, 2, 0, 'America/Los_Angeles');
-	dt.getTimezoneOffset(); => 480
+``` js
+// Pre-DST-leap
+var dt = new timezoneJS.Date(2006, 9, 29, 1, 59, 'America/Los_Angeles');
+dt.getTimezoneOffset(); => 420
+// Post-DST-leap
+var dt = new timezoneJS.Date(2006, 9, 29, 2, 0, 'America/Los_Angeles');
+dt.getTimezoneOffset(); => 480
+```
 
 Just as you'd expect, the `getTime` method gives you the UTC timestamp for the given date:
 
-	var dtA = new timezoneJS.Date(2007, 9, 31, 10, 30, 'America/Los_Angeles');
-	var dtB = new timezoneJS.Date(2007, 9, 31, 12, 30, 'America/Chicago');
-	// Same timestamp
-	dtA.getTime(); => 1193855400000
-	dtB.getTime(); => 1193855400000
+``` js
+var dtA = new timezoneJS.Date(2007, 9, 31, 10, 30, 'America/Los_Angeles');
+var dtB = new timezoneJS.Date(2007, 9, 31, 12, 30, 'America/Chicago');
+// Same timestamp
+dtA.getTime(); => 1193855400000
+dtB.getTime(); => 1193855400000
+```
 
 You can set (or reset) the timezone using the `setTimezone` method:
 
-	var dt = new timezoneJS.Date('10/31/2006', 'America/Juneau');
-	dt.getTimezoneOffset(); => 540
-	dt.setTimezone('America/Chicago');
-	dt.getTimezoneOffset(); => 300
-	dt.setTimezone('Pacific/Honolulu');
-	dt.getTimezoneOffset(); => 600
+``` js
+var dt = new timezoneJS.Date('10/31/2006', 'America/Juneau');
+dt.getTimezoneOffset(); => 540
+dt.setTimezone('America/Chicago');
+dt.getTimezoneOffset(); => 300
+dt.setTimezone('Pacific/Honolulu');
+dt.getTimezoneOffset(); => 600
+```
 
 The `getTimezone` method tells you what timezone a `timezoneJS.Date` is set to:
 
-	var dt = new timezoneJS.Date('12/27/2010', 'Asia/Tokyo');
-	dt.getTimezone(); => 'Asia/Tokyo'
+``` js
+var dt = new timezoneJS.Date('12/27/2010', 'Asia/Tokyo');
+dt.getTimezone(); => 'Asia/Tokyo'
+```
 
 You can use `getTimezoneAbbreviation` method to get timezone abbreviation:
 
-	var dt = new timezoneJS.Date('10/31/2008', 'America/New_York');
-	dt.getTimezoneAbbreviation(); => 'EDT'
+``` js
+var dt = new timezoneJS.Date('10/31/2008', 'America/New_York');
+dt.getTimezoneAbbreviation(); => 'EDT'
+```
 
 ## Customizing
 
 If you don't change it, the timezone region that loads on
  initialization is North America (the Olson 'northamerica' file). To change that to another reqion, set `timezoneJS.timezone.defaultZoneFile` to your desired region, like so:
  
-	timezoneJS.timezone.zoneFileBasePath = '/tz';
-	timezoneJS.timezone.defaultZoneFile = 'asia';
-	timezoneJS.timezone.init();
+ ``` js
+timezoneJS.timezone.zoneFileBasePath = '/tz';
+timezoneJS.timezone.defaultZoneFile = 'asia';
+timezoneJS.timezone.init();
+```
 
 If you want to preload multiple regions, set it to an array, like this:
 
-	timezoneJS.timezone.zoneFileBasePath = '/tz';
-	timezoneJS.timezone.defaultZoneFile = ['asia', 'backward', 'northamerica', 'southamerica'];
-	timezoneJS.timezone.init();
+``` js
+timezoneJS.timezone.zoneFileBasePath = '/tz';
+timezoneJS.timezone.defaultZoneFile = ['asia', 'backward', 'northamerica', 'southamerica'];
+timezoneJS.timezone.init();
+```
 
 By default the `timezoneJS.Date` timezone code lazy-loads the timezone data files, pulling them down and parsing them only as needed.
 
@@ -147,32 +171,43 @@ The src directory contains 2 command-line JavaScript scripts that can generate t
 
 Use the script like this:
 
-	rhino preparse.js zoneFileDirectory [exemplarCities] > outputfile.json
+``` bash
+rhino preparse.js zoneFileDirectory [exemplarCities] > outputfile.json
+```
 
 Or:
 
-	node node-preparse.js zoneFileDirectory [exemplarCities] > outputfile.json
+``` bash
+node node-preparse.js zoneFileDirectory [exemplarCities] > outputfile.json
+```
 
 The first parameter is the directory where the script can find the Olson zoneinfo files. The second (optional) param should be a comma-delimited list of timzeone cities to create the JSON data for. If that parameter isn't passed, the script will generate the JSON data for all the files.
 
-	rhino preparse.js olson_files \
-	"Asia/Tokyo, America/New_York, Europe/London" \
-	> major_cities.json
+``` bash
+rhino preparse.js olson_files \
+"Asia/Tokyo, America/New_York, Europe/London" \
+> major_cities.json
 
-	rhino preparse.js olson_files > all_cities.json
+rhino preparse.js olson_files > all_cities.json
+```
+
 Or:
 
-	node node-preparse.js olson_files \
-	"Asia/Tokyo, America/New_York, Europe/London" \
-	> major_cities.json
+``` bash
+node node-preparse.js olson_files \
+"Asia/Tokyo, America/New_York, Europe/London" \
+> major_cities.json
 
-	node node-preparse.js olson_files > all_cities.json
+node node-preparse.js olson_files > all_cities.json
+```
 	
 Once you have your file of JSON data, set your loading scheme to `timezoneJS.timezone.loadingSchemes.MANUAL_LOAD`, and load the JSON data with `loadZoneJSONData`, like this:
 
-	var _tz = timezoneJS.timezone;
-	_tz.loadingScheme = _tz.loadingSchemes.MANUAL_LOAD;
-	_tz.loadZoneJSONData('/major_cities.json', true);
+``` js
+var _tz = timezoneJS.timezone;
+_tz.loadingScheme = _tz.loadingSchemes.MANUAL_LOAD;
+_tz.loadZoneJSONData('/major_cities.json', true);
+```
 
 Since the limited set of data will be much smaller than any of the zoneinfo files, and the JSON data is deserialized with `eval` or `JSON.parse`, this method is significantly faster than the default setup. However, it only works if you know beforehand exactly what timezones you want to use.
 
