@@ -627,7 +627,7 @@
       //See comments in file 'etcetera' in Olson time zone files for more info.
       //So there is ability to impact on offsetToString result by
       //timezoneJS.timezone.init({newFormatting: {offset: {revertSign: true, revertSignForGMT: true}}});
-      if (tzInfo.tzId.startsWith("Etc/")) {
+      if (tzInfo.tzId.lastIndexOf("Etc/", 0) === 0) {
           if(globalOptions.newFormatting.offset.revertSignForGMT) {
             result += (offset < 0) ? "+" : "-";
           } else {
