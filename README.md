@@ -16,11 +16,13 @@ The other significant difference from the built-in JavaScript Date is that `time
 
 ## Setup
 
+This section shows the most common way of setting up timezone-js. In the 'Customizing' section below you can find alternative approaches.
+
 First you'll need to include the code on your page. Both `timezoneJS.Date`, and the supporting code it needs in `timezoneJS.timezone` are bundled in the `date.js` file in `src` directory. Include the code on your page with a normal JavaScript script include, like so:
 
 	<script type="text/javascript" src="/js/timezone-js/src/date.js">
 
-Next you'll need the Olson time zone files -- `timezoneJS.Date` uses the raw Olson data to calculate timezone offsets. The Olson region files are simple, structured text data, which download quickly and parse easily. (They also compress to a very small size.)
+Next you'll need the Olson time zone files -- `timezoneJS.Date` uses the raw Olson data to calculate timezone offsets. The Olson region files are simple, structured text data, which download quickly and parse easily. (They also compress to a very small size.).
 
 Here is an example of how to get the Olson time zone files:
 
@@ -135,7 +137,7 @@ dt.getTimezoneAbbreviation(); => 'EDT'
 
 If you don't change it, the timezone region that loads on
  initialization is North America (the Olson 'northamerica' file). To change that to another reqion, set `timezoneJS.timezone.defaultZoneFile` to your desired region, like so:
- 
+
  ``` js
 timezoneJS.timezone.zoneFileBasePath = '/tz';
 timezoneJS.timezone.defaultZoneFile = 'asia';
@@ -159,6 +161,29 @@ You can change this behavior by changing the value of `timezoneJS.timezone.loadi
 1. `timezoneJS.timezone.loadingSchemes.PRELOAD_ALL` -- this will preload all the timezone data files for all reqions up front. This setting would only make sense if you know your users will be using timezones from all around the world, and you prefer taking the up-front load time to the small on-the-fly lag from lazy loading.
 2. `timezoneJS.timezone.loadingSchemes.LAZY_LOAD` -- the default. Loads some amount of data up front, then lazy-loads any other needed timezone data as needed.
 3. `timezoneJS.timezone.loadingSchemes.MANUAL_LOAD` -- Preloads no data, and does no lazy loading. Use this setting if you're loading pre-parsed JSON timezone data.
+
+## Ready-made tzdata NPM modules
+
+If you use NPM, and you want to load the time zone data synchronously, you can use one or more of the tzdata* NPM modules. That way, you do not have to download the IANA zone files manually, you can just run `npm update` to get the latest data.
+
+The [tzdata](https://www.npmjs.com/package/tzdata) module contains all time zones. There are other modules, e.g. [tzdata-northamerica](https://www.npmjs.com/package/tzdata-northamerica) that contain subsets of the zones.
+
+First, install timezone-js and one or more of the tzdata modules.
+```bash
+npm install timezone-js tzdata
+```
+
+Then, initialize timezone-js with the data:
+```javascript
+var timezoneJS = require("timezone-js");
+var tzdata = require("tzdata");
+
+var _tz = timezoneJS.timezone;
+_tz.loadingScheme = _tz.loadingSchemes.MANUAL_LOAD;
+_tz.loadZoneDataFromObject(tzdata);
+
+var dt = new timezoneJS.Date(2006, 9, 29, 1, 59, 'America/Los_Angeles');
+```
 
 ## Pre-Parsed JSON Data
 
@@ -200,7 +225,7 @@ node node-preparse.js olson_files \
 
 node node-preparse.js olson_files > all_cities.json
 ```
-	
+
 Once you have your file of JSON data, set your loading scheme to `timezoneJS.timezone.loadingSchemes.MANUAL_LOAD`, and load the JSON data with `loadZoneJSONData`, like this:
 
 ``` js
