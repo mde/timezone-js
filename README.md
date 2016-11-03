@@ -22,7 +22,7 @@ First you'll need to include the code on your page. Both `timezoneJS.Date`, and 
 
 	<script type="text/javascript" src="/js/timezone-js/src/date.js">
 
-Next you'll need the Olson time zone files -- `timezoneJS.Date` uses the raw Olson data to calculate timezone offsets. The Olson region files are simple, structured text data, which download quickly and parse easily. (They also compress to a very small size.).
+Next you'll need the Olson time zone files -- `timezoneJS.Date` uses the raw Olson data to calculate timezone offsets. The Olson region files are simple, structured text data, which download quickly and parse easily. (They also compress to a very small size.)
 
 Here is an example of how to get the Olson time zone files:
 
@@ -137,7 +137,6 @@ dt.getTimezoneAbbreviation(); => 'EDT'
 
 If you don't change it, the timezone region that loads on
  initialization is North America (the Olson 'northamerica' file). To change that to another reqion, set `timezoneJS.timezone.defaultZoneFile` to your desired region, like so:
-
  ``` js
 timezoneJS.timezone.zoneFileBasePath = '/tz';
 timezoneJS.timezone.defaultZoneFile = 'asia';
