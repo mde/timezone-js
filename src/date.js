@@ -196,10 +196,10 @@
     });
   };
 
-  // Constructor, which is similar to that of the native Date object itself
-  timezoneJS.Date = function () {
+// Constructor, which is similar to that of the native Date object itself
+timezoneJS.Date = function () {
     if(this === timezoneJS) {
-      throw 'timezoneJS.Date object must be constructed with \'new\'';
+        throw 'timezoneJS.Date object must be constructed with \'new\'';
     }
     var args = Array.prototype.slice.apply(arguments)
     , dt = null
@@ -225,56 +225,48 @@
     //
     //If 1st argument is an array, we can use it as a list of arguments itself
     if (Object.prototype.toString.call(args[0]) === '[object Array]') {
-      args = args[0];
+        args = args[0];
     }
     // If the last string argument doesn't parse as a Date, treat it as tz
     if (typeof args[args.length - 1] === 'string') {
-      valid = Date.parse(args[args.length - 1].replace(/GMT[\+\-]\d+/, ''));
-      if (isNaN(valid) || valid === null) {  // Checking against null is required for compatability with Datejs
-        tz = args.pop();
-      }
+        valid = Date.parse(args[args.length - 1].replace(/GMT[\+\-]\d+/, ''));
+        if (isNaN(valid) || valid === null) {  // Checking against null is required for compatability with Datejs
+            tz = args.pop();
+        }
     }
     var is_dt_local = false;
     switch (args.length) {
-      case 0:
-        dt = new Date();
-        break;
-      case 1:
-        dt = new Date(args[0]);
-        // Date strings are local if they do not contain 'Z', 'T' or timezone offsets like '+0200'
-        //  - more info below
-        if (typeof args[0] == 'string' && args[0].search(/[+-][0-9]{4}/) == -1
-                && args[0].search(/Z/) == -1 && args[0].search(/T/) == -1) {
+        case 0:
+            dt = new Date();
+            break;
+        case 1:
+            dt = new Date(args[0]);
+            // Date strings are local if they do not contain 'Z', 'T' or timezone offsets like '+0200'
+            //  - more info below
+/*            if (typeof args[0] == 'string' && args[0].search(/[+-][0-9]{4}/) == -1
+            && args[0].search(/Z/) == -1 && args[0].search(/T/) == -1) {
+                is_dt_local = true;
+            }*/
+            break;
+        case 2:
+            dt = new Date(args[0], args[1]);
             is_dt_local = true;
-        }
-        break;
-      case 2:
-        dt = new Date(args[0], args[1]);
-        is_dt_local = true;
-        break;
-      default:
-        for (var i = 0; i < 7; i++) {
-          arr[i] = args[i] || 0;
-        }
-        dt = new Date(arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]);
-        is_dt_local = true;
-        break;
+            break;
+        default:
+            for (var i = 0; i < 7; i++) {
+                arr[i] = args[i] || 0;
+            }
+            dt = new Date(arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]);
+            is_dt_local = true;
+            break;
     }
 
     if (isNaN(dt.getTime())) { // invalid date were passed
-      throw new Error('Invalid date');
+        throw new Error('Invalid date');
     }
 
     this._useCache = false;
     this._tzInfo = {};
-    this._day = 0;
-    this.year = 0;
-    this.month = 0;
-    this.date = 0;
-    this.hours = 0;
-    this.minutes = 0;
-    this.seconds = 0;
-    this.milliseconds = 0;
     this.timezone = tz || null;
     // Tricky part:
     // The date is either given as unambiguous UTC date or otherwise the date is assumed
@@ -291,12 +283,10 @@
     // `dt_str_tz` is a date string containing timezone information, i.e. containing 'Z', 'T' or
     // /[+-][0-9]{4}/ (e.g. '+0200'), while `dt_str` is a string which does not contain
     // timezone information. See: http://dygraphs.com/date-formats.html
-    if (is_dt_local) {
-       this.setFromDateObjProxy(dt);
-    } else {
-       this.setFromTimeProxy(dt.getTime(), tz);
-    }
-  };
+    if (is_dt_local) setFromDate(null, dt);
+    else setFromDate(dt);
+};
+
 
   // Implements most of the native Date object
   timezoneJS.Date.prototype = {
@@ -319,7 +309,7 @@
     getUTCSeconds: function () { return this.getUTCDateProxy().getUTCSeconds(); },
     // Time adjusted to user-specified timezone
     getTime: function () {
-      return this._timeProxy + (this.getTimezoneOffset() * 60 * 1000);
+      return this._timeProxy;
     },
     getTimezone: function () { return this.timezone; },
     getTimezoneOffset: function () { return this.getTimezoneInfo().tzOffset; },
@@ -446,11 +436,20 @@
       this._timeProxy = Date.UTC(this.year, this.month, this.date, this.hours, this.minutes, this.seconds, this.milliseconds);
       this._useCache = false;
     },
-    setFromTimeProxy: function (utcMillis, tz) {
-      var dt = new Date(utcMillis);
-      var tzOffset = tz ? timezoneJS.timezone.getTzInfo(utcMillis, tz, true).tzOffset : dt.getTimezoneOffset();
-      dt.setTime(utcMillis + (dt.getTimezoneOffset() - tzOffset) * 60000);
-      this.setFromDateObjProxy(dt);
+    setFromDate: function(utc, local){
+        this._local = local;
+        this._utc = utc;
+        if (!utc){
+            var localMSec = Date.UTC(local.getFullYear(), local.getMonth(), local.getDate(), local.getHours(), local.getMinutes(), local.getSeconds(), local.getMilliseconds());
+            var tzOffset = that.timezone ? timezoneJS.timezone.getTzInfo(localMSec, that.timezone).tzOffset : local.getTimezoneOffset();
+            utc = new Date(dt.getTime() - (dt.getTimezoneOffset() - tzOffset) * 60000);
+        }
+        this._useCache = false;
+    }
+
+    setFromTimeProxy: function (utcMillis) {
+        this._timeProxy = utcMillis;
+        this._useCache = false;
     },
     setAttribute: function (unit, n) {
       if (isNaN(n)) { throw new Error('Units must be a number.'); }
