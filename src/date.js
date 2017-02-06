@@ -564,16 +564,21 @@ function getLocal(that){
 
 function setAttribute(that, unit, n) {
     if (isNaN(n)) { throw new Error('Units must be a number.'); }
+//    console.log("setAttribute", unit, n);
     var tzOffset = that.timezone ? timezoneJS.timezone.getTzInfo(that._utc, that.timezone, true).tzOffset : that._utc.getTimezoneOffset();
     var dt = new Date(that._utc.getTime() + (that._utc.getTimezoneOffset() - tzOffset) * 60000);
+//    console.log("setAttribute1", dt, tzOffset, that._utc.getTimezoneOffset());
     var startDiff = tzOffset - that._utc.getTimezoneOffset();
     var startLocalUtc = dt.getTime();
     var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
     dt['set' + meth](n);
+//    console.log("setAttribute2", dt);
     var endLocalUtc = dt.getTime();
     var localMSec = Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours(), dt.getMinutes(), dt.getSeconds(), dt.getMilliseconds());
+//    console.log("setAttribute3", dt, (that.timezone ? timezoneJS.timezone.getTzInfo(localMSec, that.timezone).tzOffset : dt.getTimezoneOffset()), dt.getTimezoneOffset());
     var endDiff = (that.timezone ? timezoneJS.timezone.getTzInfo(localMSec, that.timezone).tzOffset : dt.getTimezoneOffset()) - dt.getTimezoneOffset();
     dt.setTime(that._utc.getTime() + (endLocalUtc - startLocalUtc) + (startDiff - endDiff) * 60000);
+//    console.log("setAttribute4", dt);
     setFromDate(that, dt);
 }
 
