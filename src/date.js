@@ -296,15 +296,15 @@ timezoneJS.Date.now = function(tz){
 
   // Implements most of the native Date object
 timezoneJS.Date.prototype = {
-    getDate: function () { return getLocal(this).getDate(); },
-    getDay: function () { return getLocal(this).getDay(); },
-    getFullYear: function () { return getLocal(this).getFullYear(); },
-    getMonth: function () { return getLocal(this).getMonth(); },
-    getYear: function () { return getLocal(this).getYear(); },
-    getHours: function () { return getLocal(this).getHours(); },
-    getMilliseconds: function () { return getLocal(this).getMilliseconds(); },
-    getMinutes: function () { return getLocal(this).getMinutes(); },
-    getSeconds: function () { return getLocal(this).getSeconds(); },
+    getDate: function () { return getLocal(this).getUTCDate(); },
+    getDay: function () { return getLocal(this).getUTCDay(); },
+    getFullYear: function () { return getLocal(this).getUTCFullYear(); },
+    getMonth: function () { return getLocal(this).getUTCMonth(); },
+    getYear: function () { return getLocal(this).getUTCFullYear() - 1900; },
+    getHours: function () { return getLocal(this).getUTCHours(); },
+    getMilliseconds: function () { return getLocal(this).getUTCMilliseconds(); },
+    getMinutes: function () { return getLocal(this).getUTCMinutes(); },
+    getSeconds: function () { return getLocal(this).getUTCSeconds(); },
     getUTCDate: function () { return this._utc.getUTCDate(); },
     getUTCDay: function () { return this._utc.getUTCDay(); },
     getUTCFullYear: function () { return this._utc.getUTCFullYear(); },
@@ -328,7 +328,7 @@ timezoneJS.Date.prototype = {
         if (this.timezone) {
             res = this.timezone === 'Etc/UTC' || this.timezone === 'Etc/GMT'
             ? { tzOffset: 0, tzAbbr: 'UTC' }
-            : timezoneJS.timezone.getTzInfo(this._utc.getTime(), this.timezone);
+            : timezoneJS.timezone.getTzInfo(this._utc.getTime(), this.timezone, true);
         }
         // If no timezone was specified, use the local browser offset
         else {
@@ -459,7 +459,7 @@ timezoneJS.Date.prototype = {
 //      if (!format) format = 'yyyy-MM-ddTHH:mm:ss.SSS';
       if (!format) format = '\\EEE \\MMM \\dd \\yyyy \\HH:\\mm:\\ss \\OO (\\ZZ)';
       var result = format;
-      var tzInfo = tz ? timezoneJS.timezone.getTzInfo(this.getTime(), tz) : this.getTimezoneInfo();
+      var tzInfo = tz ? timezoneJS.timezone.getTzInfo(this.getTime(), tz, true) : this.getTimezoneInfo();
       var _this = this;
       // If timezone is specified, get a clone of the current Date object and modify it
       if (tz) {
@@ -544,7 +544,7 @@ function toIsoOffset(offset){
 
 
 function setFromDate(that, utc, local){
-    that._local = local;
+    delete that._local;
     that._utc = utc;
     if (!utc){
         var localMSec = Date.UTC(local.getFullYear(), local.getMonth(), local.getDate(), local.getHours(), local.getMinutes(), local.getSeconds(), local.getMilliseconds());
@@ -557,17 +557,24 @@ function setFromDate(that, utc, local){
 function getLocal(that){
     if (!that._local){
         var tzOffset = that.timezone ? timezoneJS.timezone.getTzInfo(that._utc, that.timezone, true).tzOffset : that._utc.getTimezoneOffset();
-        that._local = new Date(that._utc.getTime() + (that._utc.getTimezoneOffset() - tzOffset) * 60000);
+        that._local = new Date(that._utc.getTime() - tzOffset * 60000);
     }
     return that._local;
 }
 
 function setAttribute(that, unit, n) {
     if (isNaN(n)) { throw new Error('Units must be a number.'); }
-    var dt = getLocal(that);
+    var tzOffset = that.timezone ? timezoneJS.timezone.getTzInfo(that._utc, that.timezone, true).tzOffset : that._utc.getTimezoneOffset();
+    var dt = new Date(that._utc.getTime() + (that._utc.getTimezoneOffset() - tzOffset) * 60000);
+    var startDiff = tzOffset - that._utc.getTimezoneOffset();
+    var startLocalUtc = dt.getTime();
     var meth = unit === 'year' ? 'FullYear' : unit.substr(0, 1).toUpperCase() + unit.substr(1);
     dt['set' + meth](n);
-    setFromDate(that, null, dt);
+    var endLocalUtc = dt.getTime();
+    var localMSec = Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate(), dt.getHours(), dt.getMinutes(), dt.getSeconds(), dt.getMilliseconds());
+    var endDiff = (that.timezone ? timezoneJS.timezone.getTzInfo(localMSec, that.timezone).tzOffset : dt.getTimezoneOffset()) - dt.getTimezoneOffset();
+    dt.setTime(that._utc.getTime() + (endLocalUtc - startLocalUtc) + (startDiff - endDiff) * 60000);
+    setFromDate(that, dt);
 }
 
 function setUTCAttribute(that, unit, n) {
