@@ -287,6 +287,10 @@ timezoneJS.Date = function () {
     else setFromDate(this, dt);
 };
 
+timezoneJS.Date.now = function(tz){
+    if (tz) return new timezoneJS.Date(tz);
+    else return new timezoneJS.Date();
+};
 
   // Implements most of the native Date object
 timezoneJS.Date.prototype = {
@@ -326,7 +330,7 @@ timezoneJS.Date.prototype = {
         }
         // If no timezone was specified, use the local browser offset
         else {
-            res = { tzOffset: this._utc.getTimezoneOffset(), tzAbbr: null };
+            res = { tzOffset: this._utc.getTimezoneOffset(), tzAbbr: getLocalAbbr(this._utc) };
         }
         this._tzInfo = res;
         this._useCache = true;
@@ -438,18 +442,20 @@ timezoneJS.Date.prototype = {
         return this.timezone ? new timezoneJS.Date(this.getTime(), this.timezone) : new timezoneJS.Date(this.getTime());
     },
     toGMTString: function () { return this.toString('EEE, dd MMM yyyy HH:mm:ss Z', 'Etc/GMT'); },
-    toLocaleString: function () {},
-    toLocaleDateString: function () {},
-    toLocaleTimeString: function () {},
+    toLocaleString: function () {throw new Error("not Implemented");},
+    toLocaleDateString: function () {throw new Error("not Implemented");},
+    toLocaleTimeString: function () {throw new Error("not Implemented");},
     toSource: function () {},
     toISOString: function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'Etc/UTC') + 'Z'; },
+    toLocalISOString : function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSSoo'); },
     toJSON: function () { return this.toISOString(); },
     toDateString: function () { return this.toString('EEE MMM dd yyyy'); },
     toTimeString: function () { return this.toString('H:mm k'); },
     // Allows different format following ISO8601 format:
     toString: function (format, tz) {
       // Default format is the same as toISOString
-      if (!format) format = 'yyyy-MM-ddTHH:mm:ss.SSS';
+//      if (!format) format = 'yyyy-MM-ddTHH:mm:ss.SSS';
+      if (!format) format = 'EEE MMM dd yyyy HH:mm:ss OO (ZZ)';
       var result = format;
       var tzInfo = tz ? timezoneJS.timezone.getTzInfo(this.getTime(), tz) : this.getTimezoneInfo();
       var _this = this;
@@ -500,7 +506,9 @@ timezoneJS.Date.prototype = {
       // `E`: day
       .replace(/E+/g, function (token) { return DAYS[_this.getDay()].substring(0, token.length); })
       // `Z`: timezone abbreviation
-      .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
+      .replace(/Z+/gi, function () { return tzInfo.tzAbbr; })
+      .replace(/O+/g, "GMT" + toIsoOffset(tzInfo.tzOffset).replace(/:/,""))
+      .replace(/o+/g, toIsoOffset(tzInfo.tzOffset));
     },
     toUTCString: function () { return this.toGMTString(); },
     civilToJulianDayNumber: function (y, m, d) {
@@ -521,7 +529,16 @@ timezoneJS.Date.prototype = {
         , jDt = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524;
       return jDt;
     },
-  };
+};
+
+function getLocalAbbr(dt){
+    var m = dt.toString().match(/\((.*?)\)$/);
+    return m && m[1];
+}
+
+function toIsoOffset(offset){
+	return (offset>=0?"-":"+") + _fixWidth(Math.abs(offset/60),2) + ":" + _fixWidth(offset%60,2);
+}
 
 
 function setFromDate(that, utc, local){
