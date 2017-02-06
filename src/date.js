@@ -201,7 +201,9 @@ timezoneJS.Date = function () {
     if(this === timezoneJS) {
         throw 'timezoneJS.Date object must be constructed with \'new\'';
     }
-    var args = Array.prototype.slice.apply(arguments)
+    var args = Array.prototype.slice.apply(arguments).filter(function(arg){
+        return arg !== null && arg !== undefined;
+    })
     , dt = null
     , tz = null
     , arr = []
@@ -441,21 +443,21 @@ timezoneJS.Date.prototype = {
     clone: function () {
         return this.timezone ? new timezoneJS.Date(this.getTime(), this.timezone) : new timezoneJS.Date(this.getTime());
     },
-    toGMTString: function () { return this.toString('EEE, dd MMM yyyy HH:mm:ss Z', 'Etc/GMT'); },
+    toGMTString: function () { return this.toString('\\EEE, \\dd \\MMM \\yyyy \\HH:\\mm:\\ss \\Z', 'Etc/GMT'); },
     toLocaleString: function () {throw new Error("not Implemented");},
     toLocaleDateString: function () {throw new Error("not Implemented");},
     toLocaleTimeString: function () {throw new Error("not Implemented");},
     toSource: function () {},
-    toISOString: function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'Etc/UTC') + 'Z'; },
-    toLocalISOString : function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSSoo'); },
+    toISOString: function () { return this.toString('\\yyyy-\\MM-\\ddT\\HH:\\mm:\\ss.\\SSS', 'Etc/UTC') + 'Z'; },
+    toLocalISOString : function () { return this.toString('\\yyyy-\\MM-\\ddT\\HH:\\mm:\\ss.\\SSS\\oo'); },
     toJSON: function () { return this.toISOString(); },
-    toDateString: function () { return this.toString('EEE MMM dd yyyy'); },
-    toTimeString: function () { return this.toString('H:mm k'); },
+    toDateString: function () { return this.toString('\\EEE \\MMM \\dd \\yyyy'); },
+    toTimeString: function () { return this.toString('\\H:\\mm \\k'); },
     // Allows different format following ISO8601 format:
     toString: function (format, tz) {
       // Default format is the same as toISOString
 //      if (!format) format = 'yyyy-MM-ddTHH:mm:ss.SSS';
-      if (!format) format = 'EEE MMM dd yyyy HH:mm:ss OO (ZZ)';
+      if (!format) format = '\\EEE \\MMM \\dd \\yyyy \\HH:\\mm:\\ss \\OO (\\ZZ)';
       var result = format;
       var tzInfo = tz ? timezoneJS.timezone.getTzInfo(this.getTime(), tz) : this.getTimezoneInfo();
       var _this = this;
@@ -467,23 +469,23 @@ timezoneJS.Date.prototype = {
       var hours = _this.getHours();
       return result
       // fix the same characters in Month names
-      .replace(/a+/g, function () { return 'k'; })
+      .replace(/\\a+/g, function () { return 'k'; })
       // `y`: year
-      .replace(/y+/g, function (token) { return _fixWidth(_this.getFullYear(), token.length); })
+      .replace(/\\y+/g, function (token) { return _fixWidth(_this.getFullYear(), token.length-1); })
       // `d`: date
-      .replace(/d+/g, function (token) { return _fixWidth(_this.getDate(), token.length); })
+      .replace(/\\d+/g, function (token) { return _fixWidth(_this.getDate(), token.length-1); })
       // `m`: minute
-      .replace(/m+/g, function (token) { return _fixWidth(_this.getMinutes(), token.length); })
+      .replace(/\\m+/g, function (token) { return _fixWidth(_this.getMinutes(), token.length-1); })
       // `s`: second
-      .replace(/s+/g, function (token) { return _fixWidth(_this.getSeconds(), token.length); })
+      .replace(/\\s+/g, function (token) { return _fixWidth(_this.getSeconds(), token.length-1); })
       // `S`: millisecond
-      .replace(/S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length); })
+      .replace(/\\S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length-1); })
       // 'h': 12 hour format
-      .replace(/h+/g, function (token) { return _fixWidth( ((hours%12) === 0) ? 12 : (hours % 12), token.length); })
+      .replace(/\\h+/g, function (token) { return _fixWidth( ((hours%12) === 0) ? 12 : (hours % 12), token.length-1); })
       // `M`: month. Note: `MM` will be the numeric representation (e.g February is 02) but `MMM` will be text representation (e.g February is Feb)
-      .replace(/M+/g, function (token) {
+      .replace(/\\M+/g, function (token) {
         var _month = _this.getMonth(),
-        _len = token.length;
+        _len = token.length-1;
         if (_len > 3) {
           return timezoneJS.Months[_month];
         } else if (_len > 2) {
@@ -492,7 +494,7 @@ timezoneJS.Date.prototype = {
         return _fixWidth(_month + 1, _len);
       })
       // `k`: AM/PM
-      .replace(/k+/g, function () {
+      .replace(/\\k+/g, function () {
         if (hours >= 12) {
           if (hours > 12) {
             hours -= 12;
@@ -502,13 +504,13 @@ timezoneJS.Date.prototype = {
         return 'AM';
       })
       // `H`: hour
-      .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
+      .replace(/\\H+/g, function (token) { return _fixWidth(hours, token.length-1); })
       // `E`: day
-      .replace(/E+/g, function (token) { return DAYS[_this.getDay()].substring(0, token.length); })
+      .replace(/\\E+/g, function (token) { return DAYS[_this.getDay()].substring(0, token.length-1); })
       // `Z`: timezone abbreviation
-      .replace(/Z+/gi, function () { return tzInfo.tzAbbr; })
-      .replace(/O+/g, "GMT" + toIsoOffset(tzInfo.tzOffset).replace(/:/,""))
-      .replace(/o+/g, toIsoOffset(tzInfo.tzOffset));
+      .replace(/\\Z+/gi, function () { return tzInfo.tzAbbr; })
+      .replace(/\\O+/g, "GMT" + toIsoOffset(tzInfo.tzOffset).replace(/:/,""))
+      .replace(/\\o+/g, toIsoOffset(tzInfo.tzOffset));
     },
     toUTCString: function () { return this.toGMTString(); },
     civilToJulianDayNumber: function (y, m, d) {
