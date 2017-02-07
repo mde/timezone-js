@@ -6,11 +6,12 @@
     "Preston Hunt <prestonhunt@gmail.com>",
     "Dov. B Katz <dov.katz@morganstanley.com>",
     "Peter Bergström <pbergstr@mac.com>",
-    "Long Ho <holevietlong@gmail.com> (http://www.longlho.me)"
+    "Long Ho <holevietlong@gmail.com> (http://www.longlho.me)",
+    "Simon Ruetzler <sruetzer@arigo-software.de>"
   ],
   "name": "timezone-js",
   "description": "JavaScript timezone library based on Olson timezone data",
-  "version": "0.4.11",
+  "version": "0.4.11-1",
   "main": "src/date.js",
   "homepage": "https://github.com/mde/timezone-js",
   "repository": {
