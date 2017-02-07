@@ -1,10 +1,12 @@
 {
-  "laxcomma": true,
-  "browser": true,
-  "globalstrict": true,
-  "strict": true,
-  "expr": true,
-  "multistr": true,
+    "node":true,
+	"jquery":true,
+	"browser":true,
+
+	"undef":true,
+	"unused": true,
+	"smarttabs":true,
+	"esnext":true,
   "globals": {
     "define": true,
     "window": true,
