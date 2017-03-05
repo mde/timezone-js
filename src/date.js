@@ -343,7 +343,7 @@
     },
     getUTCDateProxy: function () {
       var dt = new Date(this._timeProxy);
-      dt.setUTCMinutes(dt.getUTCMinutes() + this.getTimezoneOffset());
+      dt.setUTCMinutes(parseInt(dt.getUTCMinutes()) + parseInt(this.getTimezoneOffset()));
       return dt;
     },
     setDate: function (date) {
