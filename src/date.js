@@ -61,7 +61,7 @@
   // This can be jQuery, Zepto or fleegix.
   // You can also specify your own transport mechanism by declaring
   // `timezoneJS.timezone.transport` to a `function`. More details will follow
-  var ajax_lib = root.$ || root.jQuery || root.Zepto
+  var ajax_lib = root.jQuery || root.$ || root.Zepto
     , fleegix = root.fleegix
     // Declare constant list of days and months. Unfortunately this doesn't leave room for i18n due to the Olson data being in English itself
     , DAYS = timezoneJS.Days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
