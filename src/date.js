@@ -139,6 +139,20 @@
     return s.join('');
   };
 
+  var _ordinalSuffixOf = function (i) {
+    var j = i % 10;
+    if (j == 1 && i != 11) {
+        return i + "st";
+    }
+    if (j == 2 && i != 12) {
+        return i + "nd";
+    }
+    if (j == 3 && i != 13) {
+        return i + "rd";
+    }
+    return i + "th";
+  };
+
   // Abstraction layer for different transport layers, including fleegix/jQuery/Zepto/Node.js
   //
   // Object `opts` include
@@ -483,14 +497,14 @@
       return this.timezone ? new timezoneJS.Date(this.getTime(), this.timezone) : new timezoneJS.Date(this.getTime());
     },
     toGMTString: function () { return this.toString('EEE, dd MMM yyyy HH:mm:ss Z', 'Etc/GMT'); },
-    toLocaleString: function () {},
-    toLocaleDateString: function () {},
-    toLocaleTimeString: function () {},
+    toLocaleString: function () { return this.toString('EEE, dd MMM yyyy HH:mm Z'); },
+    toLocaleDateString: function () { return this.toString('EEE, dd MMM yyyy'); },
+    toLocaleTimeString: function () { return this.toString('HH:mm Z'); },
     toSource: function () {},
     toISOString: function () { return this.toString('yyyy-MM-ddTHH:mm:ss.SSS', 'Etc/UTC') + 'Z'; },
     toJSON: function () { return this.toISOString(); },
     toDateString: function () { return this.toString('EEE MMM dd yyyy'); },
-    toTimeString: function () { return this.toString('H:mm k'); },
+    toTimeString: function () { return this.toString('h:mm k'); },
     // Allows different format following ISO8601 format:
     toString: function (format, tz) {
       // Default format is the same as toISOString
@@ -519,6 +533,8 @@
       .replace(/S+/g, function (token) { return _fixWidth(_this.getMilliseconds(), token.length); })
       // 'h': 12 hour format
       .replace(/h+/g, function (token) { return _fixWidth( ((hours%12) === 0) ? 12 : (hours % 12), token.length); })
+      // `Do`: date with suffix
+      .replace(/Do/g, function (token) { return _ordinalSuffixOf(_this.getDate()); })
       // `M`: month. Note: `MM` will be the numeric representation (e.g February is 02) but `MMM` will be text representation (e.g February is Feb)
       .replace(/M+/g, function (token) {
         var _month = _this.getMonth(),
@@ -536,9 +552,9 @@
           if (hours > 12) {
             hours -= 12;
           }
-          return 'PM';
+          return 'pm';
         }
-        return 'AM';
+        return 'am';
       })
       // `H`: hour
       .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
@@ -548,6 +564,7 @@
       .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
     },
     toUTCString: function () { return this.toGMTString(); },
+    toYmdString: function () { return this.year + '-' + _fixWidth(this.month+1, 2) + '-' + _fixWidth(this.date, 2); },
     civilToJulianDayNumber: function (y, m, d) {
       var a;
       // Adjust for zero-based JS-style array
