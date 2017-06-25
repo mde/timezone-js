@@ -804,7 +804,7 @@
                 // Date is in a set range.
                 ruleset[i][1] >= year ||
                 // Date is in an 'only' year.
-                  (ruleset[i][0] === year && ruleset[i][1] === 'only') ||
+                  (ruleset[i][0] == year && ruleset[i][1] === 'only') ||
                 //We're in a range from the start year to infinity.
                     ruleset[i][1] === 'max'
           )
