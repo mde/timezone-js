@@ -196,6 +196,10 @@
     });
   };
 
+  // private constants for timezoneJS.Date
+  var DATE_LITERALS = "aydmsShMkHEZzX";
+  var NON_DATELITERALS_REGEXP = new RegExp("[^" + DATE_LITERALS + "_\\W]","g");
+
   // Constructor, which is similar to that of the native Date object itself
   timezoneJS.Date = function () {
     if(this === timezoneJS) {
@@ -504,7 +508,27 @@
         _this.setTimezone(tz);
       }
       var hours = _this.getHours();
-      return result
+
+      if (globalOptions.newFormatting.enabled) {
+        //check that user not add non date literals outside of ''
+        var check = result.replace(/'.*'/g, ""); //replace all text in ''
+        var found = check.match(NON_DATELITERALS_REGEXP);
+        if (found) {
+          throw new Error("Illegal format \"" + format + "\". It contains non date literals (" + found.join() + ") outside of ''");
+        }
+      }
+
+      var escapeParts = [];
+      if (globalOptions.newFormatting.enabled) {
+        //escape text in '' (part1)
+        result = result.replace(/'.*'/g, function (str) {
+          var escapePart = str.substr(1, str.length - 2).replace(/''/g, "'");
+          escapeParts.push(escapePart);
+          return "'" + (escapeParts.length - 1) + "'"; //see continue in bottom code in this function
+        });
+      }
+
+      result = result
       // fix the same characters in Month names
       .replace(/a+/g, function () { return 'k'; })
       // `y`: year
@@ -543,9 +567,88 @@
       // `H`: hour
       .replace(/H+/g, function (token) { return _fixWidth(hours, token.length); })
       // `E`: day
-      .replace(/E+/g, function (token) { return DAYS[_this.getDay()].substring(0, token.length); })
-      // `Z`: timezone abbreviation
-      .replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
+      .replace(/E+/g, function (token) { return DAYS[_this.getDay()].substring(0, token.length); });
+      if (!globalOptions.newFormatting.enabled) {
+        // `Z`: timezone abbreviation
+        result = result.replace(/Z+/gi, function () { return tzInfo.tzAbbr; });
+      } else {
+        //According to http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+        //z - General time zone, Z - RFC 822 time zone, X - ISO 8601 time zone
+        //Example of 'Europe/Moscow' should be formatted like
+        //z = zz = zzz = MSK; zzzz = zzzz... = Moscow Standard Time
+        //Z = Z... = +0300 = XX
+        //X = +03 XX = +0300 XXX = +03:00 XXXX... = error
+        //Assumptions:
+        //1) Unfortunately there is no full names for time zones in Olson time zone files (e.g. Moscow Standard Time for MSK)
+        //so decide to display TZ id (e.g. Europe/Moscow)
+        //2) XXXX... = error, but decided to obtain normally like XXX
+        result = result
+        //zzzz...
+        .replace(/zzzz+/g, function () {
+          return tzInfo.tzId;
+        })
+        //z, zz, zzz
+        .replace(/z{1,3}/g, function () {
+          return tzInfo.tzAbbr;
+        })
+        //Z...
+        .replace(/Z+/g, function () {
+          return _this.offsetToString(tzInfo, true);
+        })
+        //XXX...
+        .replace(/XXX+/g, function () {
+          return _this.offsetToString(tzInfo, true, true);
+        })
+        //XX
+        .replace(/XX/g, function () {
+          return _this.offsetToString(tzInfo, true);
+        })
+        //X
+        .replace(/X/g, function () {
+          return _this.offsetToString(tzInfo);
+        });
+      }
+
+      if (globalOptions.newFormatting.enabled) {
+        //escape text in '' (part2)
+        result = result.replace(/'.*'/g, function (str) {
+          var index = parseInt(str.replace(/'/g, ""));
+          return escapeParts[index];
+        });
+      }
+      return result;
+    },
+    offsetToString: function (tzInfo, showMinute, showDelimiter) {
+      var offset = tzInfo.tzOffset;
+      var result = "";
+
+      //Offset sign is opposite to sign of UTC+X. But Etc/GMT time zones have not opposite sign. Also some system can
+      //change sign in Olson time zone files of Etc/GMT for compatibility with old format.
+      //See comments in file 'etcetera' in Olson time zone files for more info.
+      //So there is ability to impact on offsetToString result by
+      //timezoneJS.timezone.init({newFormatting: {offset: {revertSign: true, revertSignForGMT: true}}});
+      if (tzInfo.tzId.lastIndexOf("Etc/", 0) === 0) {
+          if(globalOptions.newFormatting.offset.revertSignForGMT) {
+            result += (offset < 0) ? "+" : "-";
+          } else {
+            result += (offset < 0) ? "-" : "+";
+          }
+      } else if (globalOptions.newFormatting.offset.revertSign) {
+        result += (offset < 0) ? "+" : "-";
+      }
+
+      offset = Math.abs(offset);
+      var hh = Math.floor(offset / 60) + "";
+      if (hh.length == 1) hh = "0" + hh;
+
+      var mm = "";
+      if (showMinute) {
+        mm = offset % 60 + "";
+        if (mm.length == 1) mm = "0" + mm;
+      }
+
+      result += hh + (showDelimiter ? ":" : "") + mm;
+      return result;
     },
     toUTCString: function () { return this.toGMTString(); },
     civilToJulianDayNumber: function (y, m, d) {
@@ -571,6 +674,32 @@
     }
   };
 
+  var globalOptions = {
+    newFormatting: {
+      //compatibility for /Z+/gi in toString()
+      enabled: false,
+      //options for timezoneJS.Date.offsetToString
+      offset: {
+        revertSign: true,
+        revertSignForGMT: false
+      }
+    },
+    setOptions: function(options) {
+      this._setOptions(this, options);
+    },
+    _setOptions: function(toOptions, fromOptions) {
+      //use only existed keys from globalOptions and override values in globalOptions from fromOptions if it contains key
+      for (var key in toOptions) {
+        if (!(toOptions[key] instanceof Function) && key in fromOptions) {
+          if (toOptions[key] instanceof Object) {
+            this._setOptions(toOptions[key], fromOptions[key]);
+          } else {
+            toOptions[key] = fromOptions[key];
+          }
+        }
+      }
+    }
+  };
 
   timezoneJS.timezone = new function () {
     var _this = this
@@ -908,6 +1037,8 @@
     this.rules = {};
 
     this.init = function (o) {
+      globalOptions.setOptions(o);
+
       var opts = { async: true }
         , def = this.loadingScheme === this.loadingSchemes.PRELOAD_ALL
           ? this.zoneFiles
@@ -1062,7 +1193,8 @@
         off = getAdjustedOffset(off, rule[6]);
       }
       var abbr = getAbbreviation(z, rule);
-      return { tzOffset: off, tzAbbr: abbr };
+      //unfortunately there is no full name of TZ in Olson tz files
+      return { tzOffset: off, tzAbbr: abbr, tzId: tz };
     };
     //Lazy-load any zones not yet loaded.
     this.lazyLoadZoneFiles = function(tz) {
